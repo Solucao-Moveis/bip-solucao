@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReportOrderIdRouteImport } from './routes/report.$orderId'
 import { Route as LoadingOrderIdRouteImport } from './routes/loading.$orderId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportOrderIdRoute = ReportOrderIdRouteImport.update({
+  id: '/report/$orderId',
+  path: '/report/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoadingOrderIdRoute = LoadingOrderIdRouteImport.update({
@@ -26,27 +32,31 @@ const LoadingOrderIdRoute = LoadingOrderIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
+  '/report/$orderId': typeof ReportOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
+  '/report/$orderId': typeof ReportOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
+  '/report/$orderId': typeof ReportOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/loading/$orderId'
+  fullPaths: '/' | '/loading/$orderId' | '/report/$orderId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/loading/$orderId'
-  id: '__root__' | '/' | '/loading/$orderId'
+  to: '/' | '/loading/$orderId' | '/report/$orderId'
+  id: '__root__' | '/' | '/loading/$orderId' | '/report/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoadingOrderIdRoute: typeof LoadingOrderIdRoute
+  ReportOrderIdRoute: typeof ReportOrderIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report/$orderId': {
+      id: '/report/$orderId'
+      path: '/report/$orderId'
+      fullPath: '/report/$orderId'
+      preLoaderRoute: typeof ReportOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loading/$orderId': {
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoadingOrderIdRoute: LoadingOrderIdRoute,
+  ReportOrderIdRoute: ReportOrderIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
