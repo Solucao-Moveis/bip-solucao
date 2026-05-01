@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { getOrder, addScannedCode, type LoadingOrder } from "@/lib/loading-store";
-import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText } from "lucide-react";
+import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera } from "lucide-react";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 
 export function LoadingTracker({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
   const [loading, setLoading] = useState(true);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const loadOrder = async () => {
@@ -49,23 +51,31 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const isComplete = order.status === "completed";
   const remaining = order.quantity - order.scannedCodes.length;
 
-  const handleScan = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = barcodeInput.trim();
-    if (!code) return;
-
-    const result = await addScannedCode(orderId, code);
+  const processScan = useCallback(async (code: string) => {
+    if (!code.trim()) return;
+    const result = await addScannedCode(orderId, code.trim());
     if (result.success) {
       setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
       await loadOrder();
     } else {
       setFeedback({ type: "error", message: result.error || "Erro" });
     }
+    setTimeout(() => setFeedback(null), 3000);
+  }, [orderId]);
+
+  const handleScan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = barcodeInput.trim();
+    if (!code) return;
+    await processScan(code);
     setBarcodeInput("");
     inputRef.current?.focus();
-
-    setTimeout(() => setFeedback(null), 3000);
   };
+
+  const handleCameraScan = useCallback(async (code: string) => {
+    setShowScanner(false);
+    await processScan(code);
+  }, [processScan]);
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
@@ -136,7 +146,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
 
       {!isComplete ? (
         <Card className="border-primary/30">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 space-y-4">
+            {showScanner && (
+              <BarcodeScanner onScan={handleCameraScan} onClose={() => setShowScanner(false)} />
+            )}
             <form onSubmit={handleScan} className="flex gap-3">
               <div className="relative flex-1">
                 <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -149,6 +162,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                   autoFocus
                 />
               </div>
+              <Button type="button" variant="outline" onClick={() => setShowScanner(!showScanner)}>
+                <Camera className="h-4 w-4" />
+              </Button>
               <Button type="submit">Registrar</Button>
             </form>
             {feedback && (
