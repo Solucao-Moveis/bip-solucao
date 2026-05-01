@@ -4,13 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getProducts, createProduct, type Product } from "@/lib/loading-store";
-import { Plus, Package, Tag } from "lucide-react";
+import { Plus, Package, Tag, Barcode } from "lucide-react";
+import { BarcodeLabel } from "./BarcodeLabel";
 
 export function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", code: "", description: "" });
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const load = async () => {
     setProducts(await getProducts());
