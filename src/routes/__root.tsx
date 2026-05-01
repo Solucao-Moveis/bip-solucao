@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Expedição - Solução Móveis" },
+      { name: "description", content: "Cargo Tracker Pro manages truck loading by scanning product barcodes, tracking quantities, and preventing errors." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Expedição - Solução Móveis" },
+      { property: "og:description", content: "Cargo Tracker Pro manages truck loading by scanning product barcodes, tracking quantities, and preventing errors." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Expedição - Solução Móveis" },
+      { name: "twitter:description", content: "Cargo Tracker Pro manages truck loading by scanning product barcodes, tracking quantities, and preventing errors." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/79Jj5RyJyET4HtgtGJAMg0Tu5f92/social-images/social-1777664221911-images.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/79Jj5RyJyET4HtgtGJAMg0Tu5f92/social-images/social-1777664221911-images.webp" },
     ],
     links: [
       {
