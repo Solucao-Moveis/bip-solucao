@@ -155,14 +155,13 @@ export async function addScannedCode(
   const order = await getOrder(orderId);
   if (!order) return { success: false, error: "Pedido não encontrado" };
   if (order.status === "completed") return { success: false, error: "Carregamento já finalizado" };
-  if (order.scannedCodes.includes(code)) return { success: false, error: "Código já bipado anteriormente" };
   if (order.scannedCodes.length >= order.quantity) return { success: false, error: "Quantidade máxima atingida" };
 
   const { error } = await supabase
     .from("scanned_codes")
     .insert({ order_id: orderId, barcode: code });
   if (error) {
-    if (error.code === "23505") return { success: false, error: "Código já bipado anteriormente" };
+    if (error.code === "23505") return { success: false, error: "Código duplicado no banco" };
     return { success: false, error: error.message };
   }
 
