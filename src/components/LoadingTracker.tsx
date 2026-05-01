@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,7 +52,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
 
   const requestCameraAndOpenScanner = useCallback(async () => {
     if (showScanner) return;
-    setShowScanner(true);
+    flushSync(() => setShowScanner(true));
     try {
       await scannerRef.current?.start();
       setFeedback(null);
