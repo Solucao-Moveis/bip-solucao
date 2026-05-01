@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OrderForm } from "@/components/OrderForm";
 import { ProductManager } from "@/components/ProductManager";
-import { getOrders, type LoadingOrder } from "@/lib/loading-store";
+import { getOrders, cancelOrder, type LoadingOrder } from "@/lib/loading-store";
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Truck, Package, Clock, CheckCircle2, Hash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Truck, Package, Clock, CheckCircle2, Hash, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
