@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useId, useRef, useState, useCallback } from "react";
 import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Camera, X } from "lucide-react";
@@ -8,13 +8,19 @@ interface BarcodeScannerProps {
   onClose: () => void;
 }
 
-export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
+export interface BarcodeScannerHandle {
+  start: () => Promise<void>;
+  stop: () => Promise<void>;
+}
+
+export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerProps>(function BarcodeScanner({ onScan, onClose }, ref) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const onScanRef = useRef(onScan);
   const hasScannedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(true);
-  const containerId = "barcode-scanner-container";
+  const [starting, setStarting] = useState(false);
+  const reactId = useId();
+  const containerId = `barcode-scanner-${reactId.replace(/:/g, "")}`;
 
   // Keep the callback ref up to date without restarting the scanner
   onScanRef.current = onScan;
@@ -33,40 +39,41 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    const scanner = new Html5Qrcode(containerId);
+  const startScanner = useCallback(async () => {
+    const scanner = scannerRef.current ?? new Html5Qrcode(containerId);
     scannerRef.current = scanner;
+    hasScannedRef.current = false;
+    setError(null);
+    setStarting(true);
 
-    scanner
-      .start(
+    try {
+      await scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 280, height: 120 } },
         (decodedText) => {
-          if (cancelled || hasScannedRef.current) return;
+          if (hasScannedRef.current) return;
           hasScannedRef.current = true;
-          onScanRef.current(decodedText);
+          void stopScanner(scanner).finally(() => onScanRef.current(decodedText));
         },
         () => {},
-      )
-      .then(() => {
-        if (cancelled) {
-          void stopScanner(scanner);
-          return;
-        }
-        setStarting(false);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error("Camera error:", err);
-          setError("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
-          setStarting(false);
-        }
-      });
+      );
+    } catch (err) {
+      console.error("Camera error:", err);
+      setError("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
+      throw err;
+    } finally {
+      setStarting(false);
+    }
+  }, [containerId, stopScanner]);
 
+  useImperativeHandle(ref, () => ({
+    start: startScanner,
+    stop: () => stopScanner(),
+  }), [startScanner, stopScanner]);
+
+  useEffect(() => {
     return () => {
-      cancelled = true;
-      void stopScanner(scanner);
+      void stopScanner();
     };
   }, [stopScanner]);
 
@@ -89,4 +96,4 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       {error && <p className="text-sm text-destructive text-center">{error}</p>}
     </div>
   );
-}
+});
