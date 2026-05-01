@@ -175,3 +175,16 @@ export async function addScannedCode(
 
   return { success: true };
 }
+
+export async function cancelOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
+  const order = await getOrder(orderId);
+  if (!order) return { success: false, error: "Pedido não encontrado" };
+  if (order.status === "completed") return { success: false, error: "Carregamento já finalizado" };
+
+  // Delete scanned codes first
+  await supabase.from("scanned_codes").delete().eq("order_id", orderId);
+  // Delete the order
+  await supabase.from("loading_orders").delete().eq("id", orderId);
+
+  return { success: true };
+}
