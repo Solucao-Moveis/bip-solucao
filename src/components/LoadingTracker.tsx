@@ -161,12 +161,17 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         </Card>
       ) : (
         <Card className="border-success/30 bg-success/5">
-          <CardContent className="pt-6 text-center">
-            <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-3" />
+          <CardContent className="pt-6 text-center space-y-4">
+            <CheckCircle2 className="h-12 w-12 text-success mx-auto" />
             <p className="text-lg font-semibold text-foreground">Carregamento Finalizado!</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground">
               Todos os {order.quantity} pacotes foram registrados com sucesso.
             </p>
+            <Link to="/report/$orderId" params={{ orderId }}>
+              <Button size="lg" className="mt-2">
+                <FileText className="h-4 w-4 mr-2" />Ver Relatório para Impressão
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       )}
