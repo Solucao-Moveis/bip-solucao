@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { getOrder, addScannedCode, type LoadingOrder } from "@/lib/loading-store";
-import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { getOrder, addScannedCode, finishOrderEarly, type LoadingOrder } from "@/lib/loading-store";
+import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, Flag } from "lucide-react";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export function LoadingTracker({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
@@ -15,6 +17,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const [barcodeInput, setBarcodeInput] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [finishReason, setFinishReason] = useState("");
+  const [finishing, setFinishing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const loadOrder = useCallback(async () => {
@@ -56,6 +61,21 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
     setShowScanner(false);
     await processScan(code);
   }, [processScan]);
+
+  const handleFinishEarly = useCallback(async () => {
+    if (!finishReason.trim()) return;
+    setFinishing(true);
+    const result = await finishOrderEarly(orderId, finishReason.trim());
+    if (result.success) {
+      setShowFinishDialog(false);
+      setFinishReason("");
+      await loadOrder();
+    } else {
+      setFeedback({ type: "error", message: result.error || "Erro ao finalizar" });
+      setTimeout(() => setFeedback(null), 3000);
+    }
+    setFinishing(false);
+  }, [finishReason, orderId, loadOrder]);
 
   if (loading) {
     return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
@@ -177,6 +197,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                 {feedback.message}
               </div>
             )}
+            <Button type="button" variant="destructive" className="w-full" onClick={() => setShowFinishDialog(true)}>
+              <Flag className="h-4 w-4 mr-2" />Finalizar Carregamento
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -216,6 +239,32 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Finalizar Carregamento Antecipadamente</DialogTitle>
+            <DialogDescription>
+              Foram escaneados {order?.scannedCodes.length ?? 0} de {order?.quantity ?? 0} pacotes.
+              Informe o motivo para finalizar sem completar todos os pacotes.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Informe o motivo..."
+            value={finishReason}
+            onChange={(e) => setFinishReason(e.target.value)}
+            rows={3}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowFinishDialog(false); setFinishReason(""); }}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleFinishEarly} disabled={!finishReason.trim() || finishing}>
+              {finishing ? "Finalizando..." : "Confirmar Finalização"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
