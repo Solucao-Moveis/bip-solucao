@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createOrder } from "@/lib/loading-store";
-import { Truck, Package, User, Calendar, FileText } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createOrder, getProducts, type Product } from "@/lib/loading-store";
+import { Truck, Package, User, Calendar, FileText, Hash } from "lucide-react";
 
 export function OrderForm() {
   const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    productType: "",
+    orderNumber: "",
+    productId: "",
     quantity: "",
     driver: "",
     vehiclePlate: "",
@@ -19,21 +23,32 @@ export function OrderForm() {
     observations: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    getProducts().then(setProducts);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const qty = parseInt(form.quantity, 10);
-    if (!form.productType || !qty || !form.driver || !form.vehiclePlate || !form.loadingDate) return;
+    if (!form.orderNumber || !form.productId || !qty || !form.driver || !form.vehiclePlate || !form.loadingDate) return;
 
-    const order = createOrder({
-      productType: form.productType,
-      quantity: qty,
-      driver: form.driver,
-      vehiclePlate: form.vehiclePlate.toUpperCase(),
-      loadingDate: form.loadingDate,
-      observations: form.observations,
-    });
-
-    navigate({ to: "/loading/$orderId", params: { orderId: order.id } });
+    setLoading(true);
+    try {
+      const order = await createOrder({
+        orderNumber: form.orderNumber,
+        productId: form.productId,
+        quantity: qty,
+        driver: form.driver,
+        vehiclePlate: form.vehiclePlate,
+        loadingDate: form.loadingDate,
+        observations: form.observations,
+      });
+      navigate({ to: "/loading/$orderId", params: { orderId: order.id } });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const update = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
@@ -55,11 +70,29 @@ export function OrderForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="productType" className="flex items-center gap-2">
-                <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                Tipo de Produto
+              <Label htmlFor="orderNumber" className="flex items-center gap-2">
+                <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                Número do Pedido
               </Label>
-              <Input id="productType" placeholder="Ex: Caixas de leite" required value={form.productType} onChange={(e) => update("productType", e.target.value)} />
+              <Input id="orderNumber" placeholder="Ex: PED-001" required value={form.orderNumber} onChange={(e) => update("orderNumber", e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="productId" className="flex items-center gap-2">
+                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                Produto
+              </Label>
+              <Select value={form.productId} onValueChange={(v) => update("productId", v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o produto" />
+                </SelectTrigger>
+                <SelectContent>
+                  {products.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} ({p.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="quantity" className="flex items-center gap-2">
@@ -97,8 +130,8 @@ export function OrderForm() {
             </Label>
             <Textarea id="observations" placeholder="Informações adicionais sobre o carregamento..." rows={3} value={form.observations} onChange={(e) => update("observations", e.target.value)} />
           </div>
-          <Button type="submit" size="lg" className="w-full">
-            Iniciar Carregamento
+          <Button type="submit" size="lg" className="w-full" disabled={loading}>
+            {loading ? "Criando..." : "Iniciar Carregamento"}
           </Button>
         </form>
       </CardContent>

@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OrderForm } from "@/components/OrderForm";
+import { ProductManager } from "@/components/ProductManager";
 import { getOrders, type LoadingOrder } from "@/lib/loading-store";
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Truck, Package, Clock, CheckCircle2 } from "lucide-react";
+import { Truck, Package, Clock, CheckCircle2, Hash } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,7 +22,7 @@ function Index() {
   const [orders, setOrders] = useState<LoadingOrder[]>([]);
 
   useEffect(() => {
-    setOrders(getOrders());
+    getOrders().then(setOrders);
   }, []);
 
   const activeOrders = orders.filter((o) => o.status !== "completed");
@@ -43,6 +43,7 @@ function Index() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        <ProductManager />
         <OrderForm />
 
         {activeOrders.length > 0 && (
@@ -83,7 +84,9 @@ function OrderCard({ order }: { order: LoadingOrder }) {
             <div className="flex items-center gap-3">
               <Package className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="font-medium text-sm">{order.productType}</p>
+                <p className="font-medium text-sm flex items-center gap-1">
+                  <Hash className="h-3 w-3" />{order.order_number} — {order.product?.name ?? "Produto"}
+                </p>
                 <p className="text-xs text-muted-foreground">{order.driver} · {order.vehiclePlate}</p>
               </div>
             </div>

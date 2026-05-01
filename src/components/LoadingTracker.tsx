@@ -6,17 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { getOrder, addScannedCode, type LoadingOrder } from "@/lib/loading-store";
-import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft } from "lucide-react";
+import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash } from "lucide-react";
 
 export function LoadingTracker({ orderId }: { orderId: string }) {
-  const [order, setOrder] = useState<LoadingOrder | undefined>(() => getOrder(orderId));
+  const [order, setOrder] = useState<LoadingOrder | undefined>();
+  const [loading, setLoading] = useState(true);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const loadOrder = async () => {
+    const o = await getOrder(orderId);
+    setOrder(o);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    loadOrder();
+  }, [orderId]);
+
+  useEffect(() => {
+    if (!loading) inputRef.current?.focus();
+  }, [loading]);
+
+  if (loading) {
+    return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
+  }
 
   if (!order) {
     return (
@@ -34,15 +49,15 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const isComplete = order.status === "completed";
   const remaining = order.quantity - order.scannedCodes.length;
 
-  const handleScan = (e: React.FormEvent) => {
+  const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = barcodeInput.trim();
     if (!code) return;
 
-    const result = addScannedCode(orderId, code);
+    const result = await addScannedCode(orderId, code);
     if (result.success) {
       setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
-      setOrder(getOrder(orderId));
+      await loadOrder();
     } else {
       setFeedback({ type: "error", message: result.error || "Erro" });
     }
@@ -54,7 +69,6 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <Link to="/">
           <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
@@ -64,7 +78,6 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         </Badge>
       </div>
 
-      {/* Order Info */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -75,8 +88,12 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div className="space-y-1">
+              <span className="text-muted-foreground flex items-center gap-1"><Hash className="h-3 w-3" />Pedido</span>
+              <p className="font-medium">{order.order_number}</p>
+            </div>
+            <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Produto</span>
-              <p className="font-medium">{order.productType}</p>
+              <p className="font-medium">{order.product?.name ?? "—"}</p>
             </div>
             <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Quantidade</span>
@@ -85,6 +102,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
             <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" />Motorista</span>
               <p className="font-medium">{order.driver}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-muted-foreground flex items-center gap-1"><Truck className="h-3 w-3" />Placa</span>
+              <p className="font-medium">{order.vehiclePlate}</p>
             </div>
             <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Data</span>
@@ -97,7 +118,6 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         </CardContent>
       </Card>
 
-      {/* Progress */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-2">
@@ -114,7 +134,6 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         </CardContent>
       </Card>
 
-      {/* Scanner */}
       {!isComplete ? (
         <Card className="border-primary/30">
           <CardContent className="pt-6">
@@ -152,7 +171,6 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         </Card>
       )}
 
-      {/* Scanned List */}
       {order.scannedCodes.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
