@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Truck, Package, Clock, CheckCircle2, Hash, XCircle } from "lucide-react";
+import logo from "@/assets/logo.jfif";
 
 export const Route = createFileRoute("/")({
   head: () => ({
