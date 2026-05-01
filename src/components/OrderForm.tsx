@@ -7,17 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { createOrder, getProducts, type Product } from "@/lib/loading-store";
-import { Truck, Package, User, Calendar, FileText, Hash } from "lucide-react";
+import { Truck, Package, User, Calendar, FileText, Hash, Plus, Trash2 } from "lucide-react";
+
+interface OrderItemInput {
+  productId: string;
+  quantity: string;
+}
 
 export function OrderForm() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [items, setItems] = useState<OrderItemInput[]>([{ productId: "", quantity: "" }]);
   const [form, setForm] = useState({
     orderNumber: "",
-    productId: "",
-    quantity: "",
     driver: "",
     vehiclePlate: "",
     loadingDate: "",
@@ -25,22 +28,24 @@ export function OrderForm() {
   });
 
   useEffect(() => {
-    setMounted(true);
     setForm((f) => ({ ...f, loadingDate: new Date().toISOString().split("T")[0] }));
     getProducts().then(setProducts);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const qty = parseInt(form.quantity, 10);
-    if (!form.orderNumber || !form.productId || !qty || !form.driver || !form.vehiclePlate || !form.loadingDate) return;
+    const parsedItems = items
+      .filter((item) => item.productId && item.quantity)
+      .map((item) => ({ productId: item.productId, quantity: parseInt(item.quantity, 10) }))
+      .filter((item) => item.quantity > 0);
+
+    if (!form.orderNumber || parsedItems.length === 0 || !form.driver || !form.vehiclePlate || !form.loadingDate) return;
 
     setLoading(true);
     try {
       const order = await createOrder({
         orderNumber: form.orderNumber,
-        productId: form.productId,
-        quantity: qty,
+        items: parsedItems,
         driver: form.driver,
         vehiclePlate: form.vehiclePlate,
         loadingDate: form.loadingDate,
@@ -55,6 +60,19 @@ export function OrderForm() {
   };
 
   const update = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
+
+  const updateItem = (index: number, field: keyof OrderItemInput, value: string) => {
+    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+  };
+
+  const addItem = () => setItems((prev) => [...prev, { productId: "", quantity: "" }]);
+
+  const removeItem = (index: number) => {
+    if (items.length <= 1) return;
+    setItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const totalQuantity = items.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0);
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -80,33 +98,6 @@ export function OrderForm() {
               <Input id="orderNumber" placeholder="Ex: PED-001" required value={form.orderNumber} onChange={(e) => update("orderNumber", e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="productId" className="flex items-center gap-2">
-                <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                Produto
-              </Label>
-              <select
-                id="productId"
-                required
-                value={form.productId}
-                onChange={(e) => update("productId", e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
-              >
-                <option value="">Selecione o produto</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quantity" className="flex items-center gap-2">
-                <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                Quantidade de Pacotes
-              </Label>
-              <Input id="quantity" type="number" min="1" placeholder="Ex: 150" required value={form.quantity} onChange={(e) => update("quantity", e.target.value)} />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="driver" className="flex items-center gap-2">
                 <User className="h-3.5 w-3.5 text-muted-foreground" />
                 Motorista
@@ -128,6 +119,68 @@ export function OrderForm() {
               <Input id="loadingDate" type="date" required value={form.loadingDate} onChange={(e) => update("loadingDate", e.target.value)} />
             </div>
           </div>
+
+          {/* Products section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2">
+                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                Produtos
+              </Label>
+              <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                <Plus className="h-3.5 w-3.5 mr-1" />Adicionar Produto
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {items.map((item, index) => (
+                <div key={index} className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Produto</Label>}
+                    <select
+                      required
+                      value={item.productId}
+                      onChange={(e) => updateItem(index, "productId", e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
+                    >
+                      <option value="">Selecione o produto</option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="w-28">
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Qtd</Label>}
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Qtd"
+                      required
+                      value={item.quantity}
+                      onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0"
+                    onClick={() => removeItem(index)}
+                    disabled={items.length <= 1}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            {totalQuantity > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Total: <span className="font-semibold text-foreground">{totalQuantity} pacotes</span>
+              </p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="observations" className="flex items-center gap-2">
               <FileText className="h-3.5 w-3.5 text-muted-foreground" />
