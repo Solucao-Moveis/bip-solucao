@@ -197,6 +197,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                 {feedback.message}
               </div>
             )}
+            <Button type="button" variant="destructive" className="w-full" onClick={() => setShowFinishDialog(true)}>
+              <Flag className="h-4 w-4 mr-2" />Finalizar Carregamento
+            </Button>
           </CardContent>
         </Card>
       ) : (
