@@ -152,11 +152,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               <p className="font-medium">{order.order_number}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Produto</span>
-              <p className="font-medium">{order.product?.name ?? "—"}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Quantidade</span>
+              <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Quantidade Total</span>
               <p className="font-medium">{order.quantity} pacotes</p>
             </div>
             <div className="space-y-1">
