@@ -47,7 +47,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           hasScannedRef.current = true;
           onScanRef.current(decodedText);
         },
-        () => {}
+        () => {},
       )
       .then(() => {
         if (cancelled) {
@@ -85,12 +85,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         className="w-full rounded-md overflow-hidden border border-border"
         style={{ minHeight: 250 }}
       />
-      {starting && (
-        <p className="text-sm text-muted-foreground text-center">Iniciando câmera...</p>
-      )}
-      {error && (
-        <p className="text-sm text-destructive text-center">{error}</p>
-      )}
+      {starting && <p className="text-sm text-muted-foreground text-center">Iniciando câmera...</p>}
+      {error && <p className="text-sm text-destructive text-center">{error}</p>}
     </div>
   );
 }
