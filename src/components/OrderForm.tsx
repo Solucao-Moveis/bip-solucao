@@ -85,7 +85,7 @@ export function OrderForm() {
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o produto" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" sideOffset={4}>
                   {products.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name} ({p.code})
