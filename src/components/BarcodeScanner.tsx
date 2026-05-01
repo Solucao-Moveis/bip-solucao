@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Camera, X } from "lucide-react";
@@ -10,10 +10,16 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const onScanRef = useRef(onScan);
   const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(true);
   const containerId = "barcode-scanner-container";
 
+  // Keep the callback ref up to date without restarting the scanner
+  onScanRef.current = onScan;
+
   useEffect(() => {
+    let cancelled = false;
     const scanner = new Html5Qrcode(containerId);
     scannerRef.current = scanner;
 
@@ -22,19 +28,28 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 280, height: 120 } },
         (decodedText) => {
+          if (cancelled) return;
           scanner.stop().catch(() => {});
-          onScan(decodedText);
+          onScanRef.current(decodedText);
         },
         () => {}
       )
-      .catch(() => {
-        setError("Não foi possível acessar a câmera. Verifique as permissões.");
+      .then(() => {
+        if (!cancelled) setStarting(false);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Camera error:", err);
+          setError("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
+          setStarting(false);
+        }
       });
 
     return () => {
+      cancelled = true;
       scanner.stop().catch(() => {});
     };
-  }, [onScan]);
+  }, []);
 
   return (
     <div className="space-y-3">
@@ -51,6 +66,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         className="w-full rounded-md overflow-hidden border border-border"
         style={{ minHeight: 250 }}
       />
+      {starting && (
+        <p className="text-sm text-muted-foreground text-center">Iniciando câmera...</p>
+      )}
       {error && (
         <p className="text-sm text-destructive text-center">{error}</p>
       )}
