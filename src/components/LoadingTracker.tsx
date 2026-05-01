@@ -239,6 +239,32 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Finalizar Carregamento Antecipadamente</DialogTitle>
+            <DialogDescription>
+              Foram escaneados {order?.scannedCodes.length ?? 0} de {order?.quantity ?? 0} pacotes.
+              Informe o motivo para finalizar sem completar todos os pacotes.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Informe o motivo..."
+            value={finishReason}
+            onChange={(e) => setFinishReason(e.target.value)}
+            rows={3}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowFinishDialog(false); setFinishReason(""); }}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleFinishEarly} disabled={!finishReason.trim() || finishing}>
+              {finishing ? "Finalizando..." : "Confirmar Finalização"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
