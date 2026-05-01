@@ -14,6 +14,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const [loading, setLoading] = useState(true);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const loadOrder = async () => {
