@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      loading_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loading_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "loading_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loading_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loading_orders: {
         Row: {
           created_at: string
