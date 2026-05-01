@@ -14,7 +14,109 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      loading_orders: {
+        Row: {
+          created_at: string
+          driver: string
+          id: string
+          loading_date: string
+          observations: string | null
+          order_number: string
+          product_id: string
+          quantity: number
+          status: string
+          vehicle_plate: string
+        }
+        Insert: {
+          created_at?: string
+          driver: string
+          id?: string
+          loading_date: string
+          observations?: string | null
+          order_number: string
+          product_id: string
+          quantity: number
+          status?: string
+          vehicle_plate: string
+        }
+        Update: {
+          created_at?: string
+          driver?: string
+          id?: string
+          loading_date?: string
+          observations?: string | null
+          order_number?: string
+          product_id?: string
+          quantity?: number
+          status?: string
+          vehicle_plate?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loading_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      scanned_codes: {
+        Row: {
+          barcode: string
+          id: string
+          order_id: string
+          scanned_at: string
+        }
+        Insert: {
+          barcode: string
+          id?: string
+          order_id: string
+          scanned_at?: string
+        }
+        Update: {
+          barcode?: string
+          id?: string
+          order_id?: string
+          scanned_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scanned_codes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "loading_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
