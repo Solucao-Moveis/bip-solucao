@@ -146,7 +146,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
 
       {!isComplete ? (
         <Card className="border-primary/30">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 space-y-4">
+            {showScanner && (
+              <BarcodeScanner onScan={handleCameraScan} onClose={() => setShowScanner(false)} />
+            )}
             <form onSubmit={handleScan} className="flex gap-3">
               <div className="relative flex-1">
                 <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -159,6 +162,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                   autoFocus
                 />
               </div>
+              <Button type="button" variant="outline" onClick={() => setShowScanner(!showScanner)}>
+                <Camera className="h-4 w-4" />
+              </Button>
               <Button type="submit">Registrar</Button>
             </form>
             {feedback && (
