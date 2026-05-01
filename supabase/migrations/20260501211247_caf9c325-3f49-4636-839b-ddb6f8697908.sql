@@ -1,0 +1,1 @@
+ALTER TABLE public.scanned_codes DROP CONSTRAINT scanned_codes_order_id_barcode_key;
