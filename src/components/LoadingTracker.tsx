@@ -62,6 +62,21 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
     await processScan(code);
   }, [processScan]);
 
+  const handleFinishEarly = useCallback(async () => {
+    if (!finishReason.trim()) return;
+    setFinishing(true);
+    const result = await finishOrderEarly(orderId, finishReason.trim());
+    if (result.success) {
+      setShowFinishDialog(false);
+      setFinishReason("");
+      await loadOrder();
+    } else {
+      setFeedback({ type: "error", message: result.error || "Erro ao finalizar" });
+      setTimeout(() => setFeedback(null), 3000);
+    }
+    setFinishing(false);
+  }, [finishReason, orderId, loadOrder]);
+
   if (loading) {
     return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
   }
