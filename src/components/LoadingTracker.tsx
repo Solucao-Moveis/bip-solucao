@@ -17,19 +17,45 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const [showScanner, setShowScanner] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     const o = await getOrder(orderId);
     setOrder(o);
     setLoading(false);
-  };
+  }, [orderId]);
 
   useEffect(() => {
     loadOrder();
-  }, [orderId]);
+  }, [loadOrder]);
 
   useEffect(() => {
     if (!loading) inputRef.current?.focus();
   }, [loading]);
+
+  const processScan = useCallback(async (code: string) => {
+    if (!code.trim()) return;
+    const result = await addScannedCode(orderId, code.trim());
+    if (result.success) {
+      setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
+      await loadOrder();
+    } else {
+      setFeedback({ type: "error", message: result.error || "Erro" });
+    }
+    setTimeout(() => setFeedback(null), 3000);
+  }, [orderId, loadOrder]);
+
+  const handleScan = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = barcodeInput.trim();
+    if (!code) return;
+    await processScan(code);
+    setBarcodeInput("");
+    inputRef.current?.focus();
+  }, [barcodeInput, processScan]);
+
+  const handleCameraScan = useCallback(async (code: string) => {
+    setShowScanner(false);
+    await processScan(code);
+  }, [processScan]);
 
   if (loading) {
     return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
@@ -50,32 +76,6 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const progress = (order.scannedCodes.length / order.quantity) * 100;
   const isComplete = order.status === "completed";
   const remaining = order.quantity - order.scannedCodes.length;
-
-  const processScan = useCallback(async (code: string) => {
-    if (!code.trim()) return;
-    const result = await addScannedCode(orderId, code.trim());
-    if (result.success) {
-      setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
-      await loadOrder();
-    } else {
-      setFeedback({ type: "error", message: result.error || "Erro" });
-    }
-    setTimeout(() => setFeedback(null), 3000);
-  }, [orderId]);
-
-  const handleScan = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = barcodeInput.trim();
-    if (!code) return;
-    await processScan(code);
-    setBarcodeInput("");
-    inputRef.current?.focus();
-  };
-
-  const handleCameraScan = useCallback(async (code: string) => {
-    setShowScanner(false);
-    await processScan(code);
-  }, [processScan]);
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
