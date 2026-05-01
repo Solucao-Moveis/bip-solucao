@@ -56,7 +56,7 @@ function Index() {
               Carregamentos Ativos
             </h2>
             {activeOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
+              <OrderCard key={order.id} order={order} onCancel={loadOrders} />
             ))}
           </div>
         )}
