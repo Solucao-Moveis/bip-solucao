@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { getOrder, addScannedCode, type LoadingOrder } from "@/lib/loading-store";
-import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash } from "lucide-react";
+import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText } from "lucide-react";
 
 export function LoadingTracker({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
