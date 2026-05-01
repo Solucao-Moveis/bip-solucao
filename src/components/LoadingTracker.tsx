@@ -48,14 +48,47 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
     setTimeout(() => setFeedback(null), 3000);
   }, [orderId, loadOrder]);
 
+  const requestCameraAndOpenScanner = useCallback(async () => {
+    if (showScanner) return;
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setFeedback({ type: "error", message: "Este navegador não permite abrir a câmera." });
+      setTimeout(() => setFeedback(null), 3000);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+      });
+      stream.getTracks().forEach((track) => track.stop());
+      setFeedback(null);
+      setShowScanner(true);
+    } catch (err) {
+      console.error("Camera permission error:", err);
+      const errorName = err instanceof DOMException ? err.name : "";
+      const message =
+        errorName === "NotAllowedError"
+          ? "Permissão da câmera negada. Libere o acesso à câmera nas configurações do navegador."
+          : errorName === "NotFoundError"
+            ? "Nenhuma câmera foi encontrada neste aparelho."
+            : "Não foi possível abrir a câmera. Tente novamente pelo navegador do celular.";
+      setFeedback({ type: "error", message });
+      setTimeout(() => setFeedback(null), 4000);
+    }
+  }, [showScanner]);
+
   const handleScan = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const code = barcodeInput.trim();
-    if (!code) return;
+    if (!code) {
+      await requestCameraAndOpenScanner();
+      return;
+    }
     await processScan(code);
     setBarcodeInput("");
     inputRef.current?.focus();
-  }, [barcodeInput, processScan]);
+  }, [barcodeInput, processScan, requestCameraAndOpenScanner]);
 
   const handleCameraScan = useCallback(async (code: string) => {
     setShowScanner(false);
@@ -183,7 +216,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setShowScanner(!showScanner)}>
+                <Button type="button" variant="outline" className="flex-1" onClick={showScanner ? () => setShowScanner(false) : requestCameraAndOpenScanner}>
                   <Camera className="h-4 w-4 mr-2" />Câmera
                 </Button>
                 <Button type="submit" className="flex-1">
