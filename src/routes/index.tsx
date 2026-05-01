@@ -22,8 +22,10 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [orders, setOrders] = useState<LoadingOrder[]>([]);
 
+  const loadOrders = () => getOrders().then(setOrders);
+
   useEffect(() => {
-    getOrders().then(setOrders);
+    loadOrders();
   }, []);
 
   const activeOrders = orders.filter((o) => o.status !== "completed");
