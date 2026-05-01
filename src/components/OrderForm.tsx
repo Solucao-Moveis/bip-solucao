@@ -13,17 +13,20 @@ export function OrderForm() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState({
     orderNumber: "",
     productId: "",
     quantity: "",
     driver: "",
     vehiclePlate: "",
-    loadingDate: new Date().toISOString().split("T")[0],
+    loadingDate: "",
     observations: "",
   });
 
   useEffect(() => {
+    setMounted(true);
+    setForm((f) => ({ ...f, loadingDate: new Date().toISOString().split("T")[0] }));
     getProducts().then(setProducts);
   }, []);
 
