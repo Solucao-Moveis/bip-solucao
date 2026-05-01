@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { getOrder, addScannedCode, finishOrderEarly, type LoadingOrder } from "@/lib/loading-store";
 import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, Flag } from "lucide-react";
-import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export function LoadingTracker({ orderId }: { orderId: string }) {
@@ -21,6 +21,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const [finishReason, setFinishReason] = useState("");
   const [finishing, setFinishing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scannerRef = useRef<BarcodeScannerHandle>(null);
 
   const loadOrder = useCallback(async () => {
     const o = await getOrder(orderId);
@@ -50,22 +51,13 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
 
   const requestCameraAndOpenScanner = useCallback(async () => {
     if (showScanner) return;
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setFeedback({ type: "error", message: "Este navegador não permite abrir a câmera." });
-      setTimeout(() => setFeedback(null), 3000);
-      return;
-    }
-
+    setShowScanner(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-      });
-      stream.getTracks().forEach((track) => track.stop());
+      await scannerRef.current?.start();
       setFeedback(null);
-      setShowScanner(true);
     } catch (err) {
       console.error("Camera permission error:", err);
+      setShowScanner(false);
       const errorName = err instanceof DOMException ? err.name : "";
       const message =
         errorName === "NotAllowedError"
@@ -77,6 +69,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
       setTimeout(() => setFeedback(null), 4000);
     }
   }, [showScanner]);
+
+  const closeScanner = useCallback(() => {
+    void scannerRef.current?.stop().finally(() => setShowScanner(false));
+  }, []);
 
   const handleScan = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,7 +197,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         <Card className="border-primary/30">
           <CardContent className="pt-6 space-y-4">
             {showScanner && (
-              <BarcodeScanner onScan={handleCameraScan} onClose={() => setShowScanner(false)} />
+              <BarcodeScanner ref={scannerRef} onScan={handleCameraScan} onClose={closeScanner} />
             )}
             <form onSubmit={handleScan} className="space-y-3">
               <div className="relative">
@@ -216,7 +212,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={showScanner ? () => setShowScanner(false) : requestCameraAndOpenScanner}>
+                <Button type="button" variant="outline" className="flex-1" onClick={showScanner ? closeScanner : requestCameraAndOpenScanner}>
                   <Camera className="h-4 w-4 mr-2" />Câmera
                 </Button>
                 <Button type="submit" className="flex-1">
