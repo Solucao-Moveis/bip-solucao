@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { createOrder, getProducts, type Product } from "@/lib/loading-store";
 import { Truck, Package, User, Calendar, FileText, Hash } from "lucide-react";
 
@@ -13,17 +13,20 @@ export function OrderForm() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState({
     orderNumber: "",
     productId: "",
     quantity: "",
     driver: "",
     vehiclePlate: "",
-    loadingDate: new Date().toISOString().split("T")[0],
+    loadingDate: "",
     observations: "",
   });
 
   useEffect(() => {
+    setMounted(true);
+    setForm((f) => ({ ...f, loadingDate: new Date().toISOString().split("T")[0] }));
     getProducts().then(setProducts);
   }, []);
 
@@ -81,18 +84,20 @@ export function OrderForm() {
                 <Package className="h-3.5 w-3.5 text-muted-foreground" />
                 Produto
               </Label>
-              <Select value={form.productId} onValueChange={(v) => update("productId", v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o produto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name} ({p.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                id="productId"
+                required
+                value={form.productId}
+                onChange={(e) => update("productId", e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
+              >
+                <option value="">Selecione o produto</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.code})
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="quantity" className="flex items-center gap-2">
