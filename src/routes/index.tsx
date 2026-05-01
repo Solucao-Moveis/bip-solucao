@@ -102,7 +102,7 @@ function OrderCard({ order, onCancel }: { order: LoadingOrder; onCancel?: () => 
               <Package className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="font-medium text-sm flex items-center gap-1">
-                  <Hash className="h-3 w-3" />{order.order_number} — {order.product?.name ?? "Produto"}
+                  <Hash className="h-3 w-3" />{order.order_number} — {order.items.length > 0 ? order.items.map(i => i.product?.name ?? "Produto").join(", ") : order.product?.name ?? "Produto"}
                 </p>
                 <p className="text-xs text-muted-foreground">{order.driver} · {order.vehiclePlate}</p>
               </div>

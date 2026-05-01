@@ -9,6 +9,13 @@ export interface Product {
   created_at: string;
 }
 
+export interface OrderItem {
+  id: string;
+  product_id: string;
+  quantity: number;
+  product?: Product;
+}
+
 export interface LoadingOrder {
   id: string;
   order_number: string;
@@ -22,6 +29,7 @@ export interface LoadingOrder {
   createdAt: string;
   scannedCodes: string[];
   product?: Product;
+  items: OrderItem[];
 }
 
 // Products
@@ -45,6 +53,42 @@ export async function createProduct(product: { name: string; code: string; descr
   return data;
 }
 
+async function fetchOrderItems(orderId: string): Promise<OrderItem[]> {
+  const { data, error } = await supabase
+    .from("loading_order_items")
+    .select("*, products(*)")
+    .eq("order_id", orderId);
+  if (error) return [];
+  return (data ?? []).map((item: any) => ({
+    id: item.id,
+    product_id: item.product_id,
+    quantity: item.quantity,
+    product: item.products as Product | undefined,
+  }));
+}
+
+function mapOrder(o: any, codes: string[], items: OrderItem[]): LoadingOrder {
+  const totalQuantity = items.length > 0
+    ? items.reduce((sum, i) => sum + i.quantity, 0)
+    : o.quantity;
+
+  return {
+    id: o.id,
+    order_number: o.order_number,
+    product_id: o.product_id,
+    quantity: totalQuantity,
+    driver: o.driver,
+    vehiclePlate: o.vehicle_plate,
+    loadingDate: o.loading_date,
+    observations: o.observations,
+    status: o.status as LoadingOrder["status"],
+    createdAt: o.created_at,
+    scannedCodes: codes,
+    product: o.products as unknown as Product,
+    items,
+  };
+}
+
 // Orders
 export async function getOrders(): Promise<LoadingOrder[]> {
   const { data: orders, error } = await supabase
@@ -61,20 +105,8 @@ export async function getOrders(): Promise<LoadingOrder[]> {
       .eq("order_id", o.id)
       .order("scanned_at");
 
-    result.push({
-      id: o.id,
-      order_number: o.order_number,
-      product_id: o.product_id,
-      quantity: o.quantity,
-      driver: o.driver,
-      vehiclePlate: o.vehicle_plate,
-      loadingDate: o.loading_date,
-      observations: o.observations,
-      status: o.status as LoadingOrder["status"],
-      createdAt: o.created_at,
-      scannedCodes: (codes ?? []).map((c) => c.barcode),
-      product: o.products as unknown as Product,
-    });
+    const items = await fetchOrderItems(o.id);
+    result.push(mapOrder(o, (codes ?? []).map((c) => c.barcode), items));
   }
   return result;
 }
@@ -93,37 +125,27 @@ export async function getOrder(id: string): Promise<LoadingOrder | undefined> {
     .eq("order_id", o.id)
     .order("scanned_at");
 
-  return {
-    id: o.id,
-    order_number: o.order_number,
-    product_id: o.product_id,
-    quantity: o.quantity,
-    driver: o.driver,
-    vehiclePlate: o.vehicle_plate,
-    loadingDate: o.loading_date,
-    observations: o.observations,
-    status: o.status as LoadingOrder["status"],
-    createdAt: o.created_at,
-    scannedCodes: (codes ?? []).map((c) => c.barcode),
-    product: o.products as unknown as Product,
-  };
+  const items = await fetchOrderItems(o.id);
+  return mapOrder(o, (codes ?? []).map((c) => c.barcode), items);
 }
 
 export async function createOrder(data: {
   orderNumber: string;
-  productId: string;
-  quantity: number;
+  items: { productId: string; quantity: number }[];
   driver: string;
   vehiclePlate: string;
   loadingDate: string;
   observations: string;
 }): Promise<LoadingOrder> {
+  const totalQuantity = data.items.reduce((sum, i) => sum + i.quantity, 0);
+  const firstProductId = data.items[0]?.productId ?? null;
+
   const { data: order, error } = await supabase
     .from("loading_orders")
     .insert({
       order_number: data.orderNumber,
-      product_id: data.productId,
-      quantity: data.quantity,
+      product_id: firstProductId,
+      quantity: totalQuantity,
       driver: data.driver,
       vehicle_plate: data.vehiclePlate.toUpperCase(),
       loading_date: data.loadingDate,
@@ -133,11 +155,22 @@ export async function createOrder(data: {
     .single();
   if (error) throw error;
 
+  // Insert items
+  const itemsToInsert = data.items.map((item) => ({
+    order_id: order.id,
+    product_id: item.productId,
+    quantity: item.quantity,
+  }));
+
+  await supabase.from("loading_order_items").insert(itemsToInsert);
+
+  const items = await fetchOrderItems(order.id);
+
   return {
     id: order.id,
     order_number: order.order_number,
     product_id: order.product_id,
-    quantity: order.quantity,
+    quantity: totalQuantity,
     driver: order.driver,
     vehiclePlate: order.vehicle_plate,
     loadingDate: order.loading_date,
@@ -145,6 +178,7 @@ export async function createOrder(data: {
     status: order.status as LoadingOrder["status"],
     createdAt: order.created_at,
     scannedCodes: [],
+    items,
   };
 }
 
@@ -193,9 +227,8 @@ export async function cancelOrder(orderId: string): Promise<{ success: boolean; 
   if (!order) return { success: false, error: "Pedido não encontrado" };
   if (order.status === "completed") return { success: false, error: "Carregamento já finalizado" };
 
-  // Delete scanned codes first
   await supabase.from("scanned_codes").delete().eq("order_id", orderId);
-  // Delete the order
+  await supabase.from("loading_order_items").delete().eq("order_id", orderId);
   await supabase.from("loading_orders").delete().eq("id", orderId);
 
   return { success: true };

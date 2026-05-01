@@ -152,11 +152,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               <p className="font-medium">{order.order_number}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Produto</span>
-              <p className="font-medium">{order.product?.name ?? "—"}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Quantidade</span>
+              <span className="text-muted-foreground flex items-center gap-1"><Package className="h-3 w-3" />Quantidade Total</span>
               <p className="font-medium">{order.quantity} pacotes</p>
             </div>
             <div className="space-y-1">
@@ -172,6 +168,17 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               <p className="font-medium">{new Date(order.loadingDate).toLocaleDateString("pt-BR")}</p>
             </div>
           </div>
+          {order.items.length > 0 && (
+            <div className="mt-3 border-t pt-3 space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Produtos</span>
+              {order.items.map((item) => (
+                <div key={item.id} className="flex justify-between text-sm">
+                  <span>{item.product?.name ?? "Produto"} ({item.product?.code ?? "—"})</span>
+                  <span className="font-medium">{item.quantity} pct</span>
+                </div>
+              ))}
+            </div>
+          )}
           {order.observations && (
             <p className="mt-3 text-sm text-muted-foreground border-t pt-3">{order.observations}</p>
           )}

@@ -80,14 +80,35 @@ export function LoadingReport({ orderId }: { orderId: string }) {
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Informações do Pedido</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border rounded-lg p-4 print:border-gray-300">
             <InfoField icon={<Hash className="h-4 w-4" />} label="Nº do Pedido" value={order.order_number} />
-            <InfoField icon={<Package className="h-4 w-4" />} label="Produto" value={order.product?.name ?? "—"} />
-            <InfoField icon={<Package className="h-4 w-4" />} label="Código" value={order.product?.code ?? "—"} />
             <InfoField icon={<Package className="h-4 w-4" />} label="Quantidade Total" value={`${order.quantity} pacotes`} />
             <InfoField icon={<User className="h-4 w-4" />} label="Motorista" value={order.driver} />
             <InfoField icon={<Truck className="h-4 w-4" />} label="Placa do Veículo" value={order.vehiclePlate} />
             <InfoField icon={<Calendar className="h-4 w-4" />} label="Data do Carregamento" value={new Date(order.loadingDate).toLocaleDateString("pt-BR")} />
             <InfoField icon={<Package className="h-4 w-4" />} label="Pacotes Bipados" value={`${order.scannedCodes.length} de ${order.quantity}`} />
           </div>
+          {order.items.length > 0 && (
+            <div className="mt-3">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Produtos do Carregamento</h3>
+              <table className="w-full border-collapse border border-gray-300 text-sm">
+                <thead>
+                  <tr className="bg-gray-100 print:bg-gray-100">
+                    <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left w-24">Código</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left w-24">Qtd</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {order.items.map((item) => (
+                    <tr key={item.id}>
+                      <td className="border border-gray-300 px-3 py-1.5">{item.product?.name ?? "—"}</td>
+                      <td className="border border-gray-300 px-3 py-1.5 font-mono">{item.product?.code ?? "—"}</td>
+                      <td className="border border-gray-300 px-3 py-1.5">{item.quantity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Observations */}
