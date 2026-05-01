@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Camera, X } from "lucide-react";
 
@@ -11,12 +11,27 @@ interface BarcodeScannerProps {
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const onScanRef = useRef(onScan);
+  const hasScannedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(true);
   const containerId = "barcode-scanner-container";
 
   // Keep the callback ref up to date without restarting the scanner
   onScanRef.current = onScan;
+
+  const stopScanner = useCallback(async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+
+    try {
+      const state = scanner.getState();
+      if (state === Html5QrcodeScannerState.SCANNING || state === Html5QrcodeScannerState.PAUSED) {
+        await scanner.stop();
+      }
+    } catch (err) {
+      console.warn("Scanner stop skipped:", err);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,8 +43,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 280, height: 120 } },
         (decodedText) => {
-          if (cancelled) return;
-          scanner.stop().catch(() => {});
+          if (cancelled || hasScannedRef.current) return;
+          hasScannedRef.current = true;
           onScanRef.current(decodedText);
         },
         () => {}
@@ -47,9 +62,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
     return () => {
       cancelled = true;
-      scanner.stop().catch(() => {});
+      void stopScanner();
     };
-  }, []);
+  }, [stopScanner]);
 
   return (
     <div className="space-y-3">
@@ -57,7 +72,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         <span className="text-sm font-medium flex items-center gap-2">
           <Camera className="h-4 w-4" /> Scanner de Código de Barras
         </span>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={() => void stopScanner().finally(onClose)}>
           <X className="h-4 w-4" />
         </Button>
       </div>
