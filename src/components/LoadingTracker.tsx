@@ -150,8 +150,8 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
             {showScanner && (
               <BarcodeScanner onScan={handleCameraScan} onClose={() => setShowScanner(false)} />
             )}
-            <form onSubmit={handleScan} className="flex gap-3">
-              <div className="relative flex-1">
+            <form onSubmit={handleScan} className="space-y-3">
+              <div className="relative">
                 <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={inputRef}
@@ -162,10 +162,14 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                   autoFocus
                 />
               </div>
-              <Button type="button" variant="outline" onClick={() => setShowScanner(!showScanner)}>
-                <Camera className="h-4 w-4" />
-              </Button>
-              <Button type="submit">Registrar</Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setShowScanner(!showScanner)}>
+                  <Camera className="h-4 w-4 mr-2" />Câmera
+                </Button>
+                <Button type="submit" className="flex-1">
+                  <ScanBarcode className="h-4 w-4 mr-2" />Registrar
+                </Button>
+              </div>
             </form>
             {feedback && (
               <div className={`mt-3 flex items-center gap-2 rounded-md p-3 text-sm font-medium ${feedback.type === "success" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
