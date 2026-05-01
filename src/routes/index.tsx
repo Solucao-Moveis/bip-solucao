@@ -77,8 +77,22 @@ function Index() {
   );
 }
 
-function OrderCard({ order }: { order: LoadingOrder }) {
+function OrderCard({ order, onCancel }: { order: LoadingOrder; onCancel?: () => void }) {
   const progress = Math.round((order.scannedCodes.length / order.quantity) * 100);
+  const isActive = order.status !== "completed";
+
+  const handleCancel = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Tem certeza que deseja cancelar este carregamento? Todos os códigos bipados serão removidos.")) return;
+    const result = await cancelOrder(order.id);
+    if (result.success) {
+      onCancel?.();
+    } else {
+      alert(result.error || "Erro ao cancelar");
+    }
+  };
+
   return (
     <Link to="/loading/$orderId" params={{ orderId: order.id }}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -93,11 +107,16 @@ function OrderCard({ order }: { order: LoadingOrder }) {
                 <p className="text-xs text-muted-foreground">{order.driver} · {order.vehiclePlate}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">{order.scannedCodes.length}/{order.quantity}</span>
               <Badge variant={order.status === "completed" ? "default" : "secondary"} className={order.status === "completed" ? "bg-success text-success-foreground" : ""}>
                 {order.status === "completed" ? "Finalizado" : `${progress}%`}
               </Badge>
+              {isActive && (
+                <Button variant="destructive" size="sm" onClick={handleCancel} className="ml-1">
+                  <XCircle className="h-3.5 w-3.5 mr-1" />Cancelar
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
