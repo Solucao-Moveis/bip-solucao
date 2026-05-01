@@ -84,18 +84,20 @@ export function OrderForm() {
                 <Package className="h-3.5 w-3.5 text-muted-foreground" />
                 Produto
               </Label>
-              <Select value={form.productId} onValueChange={(v) => update("productId", v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o produto" />
-                </SelectTrigger>
-                <SelectContent position="popper" sideOffset={4}>
-                  {products.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name} ({p.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                id="productId"
+                required
+                value={form.productId}
+                onChange={(e) => update("productId", e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
+              >
+                <option value="">Selecione o produto</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.code})
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="quantity" className="flex items-center gap-2">
