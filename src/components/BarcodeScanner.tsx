@@ -19,8 +19,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   // Keep the callback ref up to date without restarting the scanner
   onScanRef.current = onScan;
 
-  const stopScanner = useCallback(async () => {
-    const scanner = scannerRef.current;
+  const stopScanner = useCallback(async (targetScanner?: Html5Qrcode | null) => {
+    const scanner = targetScanner ?? scannerRef.current;
     if (!scanner) return;
 
     try {
@@ -50,7 +50,11 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         () => {}
       )
       .then(() => {
-        if (!cancelled) setStarting(false);
+        if (cancelled) {
+          void stopScanner(scanner);
+          return;
+        }
+        setStarting(false);
       })
       .catch((err) => {
         if (!cancelled) {
@@ -62,7 +66,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
     return () => {
       cancelled = true;
-      void stopScanner();
+      void stopScanner(scanner);
     };
   }, [stopScanner]);
 
