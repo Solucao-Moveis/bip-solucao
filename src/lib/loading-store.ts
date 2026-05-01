@@ -18,7 +18,7 @@ export interface LoadingOrder {
   vehiclePlate: string;
   loadingDate: string;
   observations: string | null;
-  status: "pending" | "in_progress" | "completed";
+  status: "pending" | "in_progress" | "completed" | "cancelled";
   createdAt: string;
   scannedCodes: string[];
   product?: Product;
