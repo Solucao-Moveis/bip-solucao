@@ -176,6 +176,19 @@ export async function addScannedCode(
   return { success: true };
 }
 
+export async function finishOrderEarly(orderId: string, reason: string): Promise<{ success: boolean; error?: string }> {
+  const order = await getOrder(orderId);
+  if (!order) return { success: false, error: "Pedido não encontrado" };
+  if (order.status === "completed") return { success: false, error: "Carregamento já finalizado" };
+
+  const { error } = await supabase
+    .from("loading_orders")
+    .update({ status: "completed", observations: order.observations ? `${order.observations}\n\nFinalizado antecipadamente: ${reason}` : `Finalizado antecipadamente: ${reason}` })
+    .eq("id", orderId);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
 export async function cancelOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
   const order = await getOrder(orderId);
   if (!order) return { success: false, error: "Pedido não encontrado" };
