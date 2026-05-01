@@ -4,13 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getProducts, createProduct, type Product } from "@/lib/loading-store";
-import { Plus, Package, Tag } from "lucide-react";
+import { Plus, Package, Tag, Barcode } from "lucide-react";
+import { BarcodeLabel } from "./BarcodeLabel";
 
 export function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", code: "", description: "" });
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const load = async () => {
     setProducts(await getProducts());
@@ -77,12 +79,27 @@ export function ProductManager() {
         ) : (
           <div className="space-y-2">
             {products.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 py-2 px-3 rounded-md bg-secondary/50">
-                <Tag className="h-4 w-4 text-muted-foreground" />
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{p.code}{p.description ? ` · ${p.description}` : ""}</p>
+              <div key={p.id}>
+                <div className="flex items-center gap-3 py-2 px-3 rounded-md bg-secondary/50">
+                  <Tag className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{p.name}</p>
+                    <p className="text-xs text-muted-foreground">{p.code}{p.description ? ` · ${p.description}` : ""}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedProduct(selectedProduct?.id === p.id ? null : p)}
+                    title="Ver código de barras"
+                  >
+                    <Barcode className="h-4 w-4" />
+                  </Button>
                 </div>
+                {selectedProduct?.id === p.id && (
+                  <div className="mt-2 ml-7">
+                    <BarcodeLabel product={p} onClose={() => setSelectedProduct(null)} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
