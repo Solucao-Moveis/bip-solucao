@@ -13,6 +13,7 @@ export interface OrderItem {
   id: string;
   product_id: string;
   quantity: number;
+  units_per_package: number;
   product?: Product;
 }
 
@@ -82,6 +83,7 @@ async function fetchOrderItems(orderId: string): Promise<OrderItem[]> {
     id: item.id,
     product_id: item.product_id,
     quantity: item.quantity,
+    units_per_package: item.units_per_package ?? 1,
     product: item.products as Product | undefined,
   }));
 }
