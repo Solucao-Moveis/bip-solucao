@@ -152,7 +152,7 @@ export async function getOrder(id: string): Promise<LoadingOrder | undefined> {
 
 export async function createOrder(data: {
   orderNumber: string;
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; quantity: number; unitsPerPackage: number }[];
   driver: string;
   vehiclePlate: string;
   loadingDate: string;
@@ -181,6 +181,7 @@ export async function createOrder(data: {
     order_id: order.id,
     product_id: item.productId,
     quantity: item.quantity,
+    units_per_package: item.unitsPerPackage,
   }));
 
   await supabase.from("loading_order_items").insert(itemsToInsert);
