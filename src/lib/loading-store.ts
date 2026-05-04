@@ -43,6 +43,25 @@ export async function getProducts(): Promise<Product[]> {
   return data ?? [];
 }
 
+export async function updateProduct(id: string, product: { name: string; code: string; description?: string }) {
+  const { data, error } = await supabase
+    .from("products")
+    .update({ name: product.name, code: product.code, description: product.description ?? null })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteProduct(id: string) {
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+}
+
 export async function createProduct(product: { name: string; code: string; description?: string }) {
   const { data, error } = await supabase
     .from("products")

@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { getProducts, createProduct, type Product } from "@/lib/loading-store";
-import { Plus, Package, Tag, Barcode } from "lucide-react";
+import { getProducts, createProduct, updateProduct, deleteProduct, type Product } from "@/lib/loading-store";
+import { Plus, Package, Tag, Barcode, Pencil, Trash2, X, Check } from "lucide-react";
 import { BarcodeLabel } from "./BarcodeLabel";
 
 export function ProductManager() {
@@ -13,6 +13,9 @@ export function ProductManager() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", code: "", description: "" });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", code: "", description: "" });
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     setProducts(await getProducts());
@@ -28,6 +31,39 @@ export function ProductManager() {
       await createProduct(form);
       setForm({ name: "", code: "", description: "" });
       setShowForm(false);
+      await load();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startEdit = (p: Product) => {
+    setEditingId(p.id);
+    setEditForm({ name: p.name, code: p.code, description: p.description ?? "" });
+    setConfirmDeleteId(null);
+  };
+
+  const handleUpdate = async (id: string) => {
+    if (!editForm.name || !editForm.code) return;
+    setLoading(true);
+    try {
+      await updateProduct(id, editForm);
+      setEditingId(null);
+      await load();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setLoading(true);
+    try {
+      await deleteProduct(id);
+      setConfirmDeleteId(null);
       await load();
     } catch (err) {
       console.error(err);
@@ -55,11 +91,11 @@ export function ProductManager() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="pName">Nome do Produto</Label>
-                <Input id="pName" placeholder="Ex: Caixas de leite" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+                <Input id="pName" placeholder="Ex: Guarda-roupa" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="pCode">Código</Label>
-                <Input id="pCode" placeholder="Ex: LEITE-001" required value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} />
+                <Input id="pCode" placeholder="Ex: GR-001" required value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} />
               </div>
             </div>
             <div className="space-y-1">
@@ -80,22 +116,46 @@ export function ProductManager() {
           <div className="space-y-2">
             {products.map((p) => (
               <div key={p.id}>
-                <div className="flex items-center gap-3 py-2 px-3 rounded-md bg-secondary/50">
-                  <Tag className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.code}{p.description ? ` · ${p.description}` : ""}</p>
+                {editingId === p.id ? (
+                  <div className="border rounded-lg p-3 space-y-2 bg-secondary/30">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Input placeholder="Nome" value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} />
+                      <Input placeholder="Código" value={editForm.code} onChange={(e) => setEditForm((f) => ({ ...f, code: e.target.value }))} />
+                    </div>
+                    <Input placeholder="Descrição" value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
+                    <div className="flex gap-2 justify-end">
+                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}><X className="h-4 w-4 mr-1" />Cancelar</Button>
+                      <Button size="sm" onClick={() => handleUpdate(p.id)} disabled={loading}><Check className="h-4 w-4 mr-1" />Salvar</Button>
+                    </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedProduct(selectedProduct?.id === p.id ? null : p)}
-                    title="Ver código de barras"
-                  >
-                    <Barcode className="h-4 w-4" />
-                  </Button>
-                </div>
-                {selectedProduct?.id === p.id && (
+                ) : (
+                  <div className="flex items-center gap-3 py-2 px-3 rounded-md bg-secondary/50">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{p.name}</p>
+                      <p className="text-xs text-muted-foreground">{p.code}{p.description ? ` · ${p.description}` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => startEdit(p)} title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {confirmDeleteId === p.id ? (
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(p.id)} disabled={loading}>Confirmar</Button>
+                          <Button size="sm" variant="ghost" onClick={() => setConfirmDeleteId(null)}><X className="h-4 w-4" /></Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="ghost" onClick={() => { setConfirmDeleteId(p.id); setEditingId(null); }} title="Excluir">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={() => setSelectedProduct(selectedProduct?.id === p.id ? null : p)} title="Ver código de barras">
+                        <Barcode className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {selectedProduct?.id === p.id && editingId !== p.id && (
                   <div className="mt-2 ml-7">
                     <BarcodeLabel product={p} onClose={() => setSelectedProduct(null)} />
                   </div>

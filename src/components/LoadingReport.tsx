@@ -126,7 +126,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
         {/* Scanned Codes Table */}
         <div className="mb-6">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Códigos de Barras Bipados ({order.scannedCodes.length})
+            Móveis Bipados ({order.scannedCodes.length})
           </h2>
           <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
