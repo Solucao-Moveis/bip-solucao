@@ -74,6 +74,11 @@ export function OrderForm() {
   };
 
   const totalQuantity = items.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0);
+  const totalProducts = items.reduce((sum, item) => {
+    const qty = parseInt(item.quantity, 10) || 0;
+    const upp = parseInt(item.unitsPerPackage, 10) || 1;
+    return sum + qty * upp;
+  }, 0);
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -188,6 +193,9 @@ export function OrderForm() {
             {totalQuantity > 0 && (
               <p className="text-sm text-muted-foreground">
                 Total: <span className="font-semibold text-foreground">{totalQuantity} pacotes</span>
+                {totalProducts !== totalQuantity && (
+                  <span className="ml-2">(<span className="font-semibold text-foreground">{totalProducts} produtos</span>)</span>
+                )}
               </p>
             )}
           </div>
