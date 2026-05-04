@@ -152,7 +152,7 @@ export function OrderForm() {
                     </select>
                   </div>
                   <div className="w-28">
-                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Qtd</Label>}
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Pacotes</Label>}
                     <Input
                       type="number"
                       min="1"
@@ -160,6 +160,16 @@ export function OrderForm() {
                       required
                       value={item.quantity}
                       onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                    />
+                  </div>
+                  <div className="w-28">
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Und/Pacote</Label>}
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="1"
+                      value={item.unitsPerPackage}
+                      onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)}
                     />
                   </div>
                   <Button
