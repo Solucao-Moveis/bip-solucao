@@ -174,7 +174,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
                   <span>{item.product?.name ?? "Produto"} ({item.product?.code ?? "—"})</span>
-                  <span className="font-medium">{item.quantity} pct</span>
+                  <span className="font-medium">
+                    {item.quantity} pct
+                    {item.units_per_package > 1 && ` × ${item.units_per_package} und`}
+                  </span>
                 </div>
               ))}
             </div>
