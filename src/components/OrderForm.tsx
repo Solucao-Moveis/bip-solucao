@@ -12,13 +12,14 @@ import { Truck, Package, User, Calendar, FileText, Hash, Plus, Trash2 } from "lu
 interface OrderItemInput {
   productId: string;
   quantity: string;
+  unitsPerPackage: string;
 }
 
 export function OrderForm() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<OrderItemInput[]>([{ productId: "", quantity: "" }]);
+  const [items, setItems] = useState<OrderItemInput[]>([{ productId: "", quantity: "", unitsPerPackage: "1" }]);
   const [form, setForm] = useState({
     orderNumber: "",
     driver: "",
@@ -36,7 +37,7 @@ export function OrderForm() {
     e.preventDefault();
     const parsedItems = items
       .filter((item) => item.productId && item.quantity)
-      .map((item) => ({ productId: item.productId, quantity: parseInt(item.quantity, 10) }))
+      .map((item) => ({ productId: item.productId, quantity: parseInt(item.quantity, 10), unitsPerPackage: parseInt(item.unitsPerPackage, 10) || 1 }))
       .filter((item) => item.quantity > 0);
 
     if (!form.orderNumber || parsedItems.length === 0 || !form.driver || !form.vehiclePlate || !form.loadingDate) return;
@@ -65,7 +66,7 @@ export function OrderForm() {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
   };
 
-  const addItem = () => setItems((prev) => [...prev, { productId: "", quantity: "" }]);
+  const addItem = () => setItems((prev) => [...prev, { productId: "", quantity: "", unitsPerPackage: "1" }]);
 
   const removeItem = (index: number) => {
     if (items.length <= 1) return;
