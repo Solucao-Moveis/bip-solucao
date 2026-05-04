@@ -94,7 +94,9 @@ export function LoadingReport({ orderId }: { orderId: string }) {
                   <tr className="bg-gray-100 print:bg-gray-100">
                     <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
                     <th className="border border-gray-300 px-3 py-2 text-left w-24">Código</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left w-24">Qtd</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left w-20">Pacotes</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left w-24">Und/Pacote</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left w-24">Total Prod.</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -103,6 +105,8 @@ export function LoadingReport({ orderId }: { orderId: string }) {
                       <td className="border border-gray-300 px-3 py-1.5">{item.product?.name ?? "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5 font-mono">{item.product?.code ?? "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5">{item.quantity}</td>
+                      <td className="border border-gray-300 px-3 py-1.5">{item.units_per_package}</td>
+                      <td className="border border-gray-300 px-3 py-1.5 font-semibold">{item.quantity * item.units_per_package}</td>
                     </tr>
                   ))}
                 </tbody>

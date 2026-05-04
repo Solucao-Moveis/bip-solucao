@@ -12,13 +12,14 @@ import { Truck, Package, User, Calendar, FileText, Hash, Plus, Trash2 } from "lu
 interface OrderItemInput {
   productId: string;
   quantity: string;
+  unitsPerPackage: string;
 }
 
 export function OrderForm() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<OrderItemInput[]>([{ productId: "", quantity: "" }]);
+  const [items, setItems] = useState<OrderItemInput[]>([{ productId: "", quantity: "", unitsPerPackage: "1" }]);
   const [form, setForm] = useState({
     orderNumber: "",
     driver: "",
@@ -36,7 +37,7 @@ export function OrderForm() {
     e.preventDefault();
     const parsedItems = items
       .filter((item) => item.productId && item.quantity)
-      .map((item) => ({ productId: item.productId, quantity: parseInt(item.quantity, 10) }))
+      .map((item) => ({ productId: item.productId, quantity: parseInt(item.quantity, 10), unitsPerPackage: parseInt(item.unitsPerPackage, 10) || 1 }))
       .filter((item) => item.quantity > 0);
 
     if (!form.orderNumber || parsedItems.length === 0 || !form.driver || !form.vehiclePlate || !form.loadingDate) return;
@@ -65,7 +66,7 @@ export function OrderForm() {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
   };
 
-  const addItem = () => setItems((prev) => [...prev, { productId: "", quantity: "" }]);
+  const addItem = () => setItems((prev) => [...prev, { productId: "", quantity: "", unitsPerPackage: "1" }]);
 
   const removeItem = (index: number) => {
     if (items.length <= 1) return;
@@ -73,6 +74,11 @@ export function OrderForm() {
   };
 
   const totalQuantity = items.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0);
+  const totalProducts = items.reduce((sum, item) => {
+    const qty = parseInt(item.quantity, 10) || 0;
+    const upp = parseInt(item.unitsPerPackage, 10) || 1;
+    return sum + qty * upp;
+  }, 0);
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -151,7 +157,7 @@ export function OrderForm() {
                     </select>
                   </div>
                   <div className="w-28">
-                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Qtd</Label>}
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Pacotes</Label>}
                     <Input
                       type="number"
                       min="1"
@@ -159,6 +165,16 @@ export function OrderForm() {
                       required
                       value={item.quantity}
                       onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                    />
+                  </div>
+                  <div className="w-28">
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Und/Pacote</Label>}
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="1"
+                      value={item.unitsPerPackage}
+                      onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)}
                     />
                   </div>
                   <Button
@@ -177,6 +193,9 @@ export function OrderForm() {
             {totalQuantity > 0 && (
               <p className="text-sm text-muted-foreground">
                 Total: <span className="font-semibold text-foreground">{totalQuantity} pacotes</span>
+                {totalProducts !== totalQuantity && (
+                  <span className="ml-2">(<span className="font-semibold text-foreground">{totalProducts} produtos</span>)</span>
+                )}
               </p>
             )}
           </div>
