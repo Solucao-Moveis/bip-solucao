@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           id: string
           order_id: string
+          package_label: string | null
           product_id: string
           quantity: number
           units_per_package: number
@@ -27,6 +28,7 @@ export type Database = {
           created_at?: string
           id?: string
           order_id: string
+          package_label?: string | null
           product_id: string
           quantity?: number
           units_per_package?: number
@@ -35,6 +37,7 @@ export type Database = {
           created_at?: string
           id?: string
           order_id?: string
+          package_label?: string | null
           product_id?: string
           quantity?: number
           units_per_package?: number
@@ -58,6 +61,7 @@ export type Database = {
       }
       loading_orders: {
         Row: {
+          city: string | null
           created_at: string
           driver: string
           id: string
@@ -70,6 +74,7 @@ export type Database = {
           vehicle_plate: string
         }
         Insert: {
+          city?: string | null
           created_at?: string
           driver: string
           id?: string
@@ -82,6 +87,7 @@ export type Database = {
           vehicle_plate: string
         }
         Update: {
+          city?: string | null
           created_at?: string
           driver?: string
           id?: string
@@ -135,18 +141,21 @@ export type Database = {
           barcode: string
           id: string
           order_id: string
+          product_id: string | null
           scanned_at: string
         }
         Insert: {
           barcode: string
           id?: string
           order_id: string
+          product_id?: string | null
           scanned_at?: string
         }
         Update: {
           barcode?: string
           id?: string
           order_id?: string
+          product_id?: string | null
           scanned_at?: string
         }
         Relationships: [
