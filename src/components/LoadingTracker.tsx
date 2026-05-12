@@ -20,6 +20,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [finishReason, setFinishReason] = useState("");
   const [finishing, setFinishing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +128,13 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const progress = (order.scannedCodes.length / order.quantity) * 100;
   const isComplete = order.status === "completed";
   const remaining = order.quantity - order.scannedCodes.length;
+
+  const handleRemoveScan = async (scanId: string) => {
+    if (!confirm("Remover este bipe? O contador será atualizado.")) return;
+    const result = await removeScannedCode(scanId);
+    if (result.success) await loadOrder();
+    else setFeedback({ type: "error", message: result.error || "Erro ao remover" });
+  };
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
