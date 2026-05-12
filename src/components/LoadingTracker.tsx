@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { getOrder, addScannedCode, finishOrderEarly, type LoadingOrder } from "@/lib/loading-store";
-import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, Flag } from "lucide-react";
+import { getOrder, addScannedCode, finishOrderEarly, removeScannedCode, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
+import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, Flag, MapPin, Pencil, Trash2 } from "lucide-react";
 import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { EditOrderDialog } from "@/components/EditOrderDialog";
 
 export function LoadingTracker({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
@@ -19,6 +20,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [finishReason, setFinishReason] = useState("");
   const [finishing, setFinishing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -127,15 +129,29 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const isComplete = order.status === "completed";
   const remaining = order.quantity - order.scannedCodes.length;
 
+  const handleRemoveScan = async (scanId: string) => {
+    if (!confirm("Remover este bipe? O contador será atualizado.")) return;
+    const result = await removeScannedCode(scanId);
+    if (result.success) await loadOrder();
+    else setFeedback({ type: "error", message: result.error || "Erro ao remover" });
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <Link to="/">
           <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
         </Link>
-        <Badge variant={isComplete ? "default" : "secondary"} className={isComplete ? "bg-success text-success-foreground" : ""}>
-          {isComplete ? "Finalizado" : "Em andamento"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {!isComplete && (
+            <Button variant="outline" size="sm" onClick={() => setShowEditDialog(true)}>
+              <Pencil className="h-3.5 w-3.5 mr-1" />Editar
+            </Button>
+          )}
+          <Badge variant={isComplete ? "default" : "secondary"} className={isComplete ? "bg-success text-success-foreground" : ""}>
+            {isComplete ? "Finalizado" : "Em andamento"}
+          </Badge>
+        </div>
       </div>
 
       <Card>
@@ -160,20 +176,27 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               <p className="font-medium">{order.driver}</p>
             </div>
             <div className="space-y-1">
+              <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />Cidade</span>
+              <p className="font-medium">{order.city || "—"}</p>
+            </div>
+            <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Truck className="h-3 w-3" />Placa</span>
               <p className="font-medium">{order.vehiclePlate}</p>
             </div>
             <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Data</span>
-              <p className="font-medium">{new Date(order.loadingDate).toLocaleDateString("pt-BR")}</p>
+              <p className="font-medium">{formatDateBR(order.loadingDate)}</p>
             </div>
           </div>
           {order.items.length > 0 && (
             <div className="mt-3 border-t pt-3 space-y-1">
-              <span className="text-xs font-semibold text-muted-foreground uppercase">Produtos</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Produtos / Pacotes</span>
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span>{item.product?.name ?? "Produto"} ({item.product?.code ?? "—"})</span>
+                  <span>
+                    {item.package_label && <span className="font-semibold text-primary mr-1">[{item.package_label}]</span>}
+                    {item.product?.name ?? "Produto"} ({item.product?.code ?? "—"})
+                  </span>
                   <span className="font-medium">
                     {item.quantity} pct
                     {item.units_per_package > 1 && ` × ${item.units_per_package} und`}
@@ -267,12 +290,18 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-48 overflow-y-auto space-y-1">
-              {order.scannedCodes.map((code, i) => (
-                <div key={code} className="flex items-center justify-between py-1.5 px-3 rounded-md bg-secondary/50 text-sm">
-                  <span className="text-muted-foreground w-8">#{i + 1}</span>
-                  <span className="font-mono font-medium flex-1">{code}</span>
-                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {order.scannedCodes.map((scan, i) => (
+                <div key={scan.id} className="flex items-center justify-between gap-2 py-1.5 px-3 rounded-md bg-secondary/50 text-sm">
+                  <span className="text-muted-foreground w-8 shrink-0">#{i + 1}</span>
+                  <span className="font-mono font-medium flex-1 truncate">{scan.barcode}</span>
+                  <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline">{formatDateTimeBR(scan.scanned_at)}</span>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                  {!isComplete && (
+                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => handleRemoveScan(scan.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -305,6 +334,8 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditOrderDialog order={order} open={showEditDialog} onOpenChange={setShowEditDialog} onSaved={loadOrder} />
     </div>
   );
 }

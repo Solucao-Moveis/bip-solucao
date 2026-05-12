@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { getOrder, type LoadingOrder } from "@/lib/loading-store";
-import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2 } from "lucide-react";
+import { getOrder, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
+import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2, MapPin } from "lucide-react";
 
 export function LoadingReport({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
@@ -82,8 +82,9 @@ export function LoadingReport({ orderId }: { orderId: string }) {
             <InfoField icon={<Hash className="h-4 w-4" />} label="Nº do Pedido" value={order.order_number} />
             <InfoField icon={<Package className="h-4 w-4" />} label="Quantidade Total" value={`${order.quantity} pacotes`} />
             <InfoField icon={<User className="h-4 w-4" />} label="Motorista" value={order.driver} />
+            <InfoField icon={<MapPin className="h-4 w-4" />} label="Cidade" value={order.city || "—"} />
             <InfoField icon={<Truck className="h-4 w-4" />} label="Placa do Veículo" value={order.vehiclePlate} />
-            <InfoField icon={<Calendar className="h-4 w-4" />} label="Data do Carregamento" value={new Date(order.loadingDate).toLocaleDateString("pt-BR")} />
+            <InfoField icon={<Calendar className="h-4 w-4" />} label="Data do Carregamento" value={formatDateBR(order.loadingDate)} />
             <InfoField icon={<Package className="h-4 w-4" />} label="Pacotes Bipados" value={`${order.scannedCodes.length} de ${order.quantity}`} />
           </div>
           {order.items.length > 0 && (
@@ -92,6 +93,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
               <table className="w-full border-collapse border border-gray-300 text-sm">
                 <thead>
                   <tr className="bg-gray-100 print:bg-gray-100">
+                    <th className="border border-gray-300 px-3 py-2 text-left">Tipo Pacote</th>
                     <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
                     <th className="border border-gray-300 px-3 py-2 text-left w-24">Código</th>
                     <th className="border border-gray-300 px-3 py-2 text-left w-20">Pacotes</th>
@@ -102,6 +104,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
                 <tbody>
                   {order.items.map((item) => (
                     <tr key={item.id}>
+                      <td className="border border-gray-300 px-3 py-1.5 font-semibold">{item.package_label || "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5">{item.product?.name ?? "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5 font-mono">{item.product?.code ?? "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5">{item.quantity}</td>
@@ -135,16 +138,18 @@ export function LoadingReport({ orderId }: { orderId: string }) {
           <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-100 print:bg-gray-100">
-                <th className="border border-gray-300 px-3 py-2 text-left w-16">#</th>
+                <th className="border border-gray-300 px-3 py-2 text-left w-12">#</th>
                 <th className="border border-gray-300 px-3 py-2 text-left">Código de Barras</th>
-                <th className="border border-gray-300 px-3 py-2 text-left w-24">Status</th>
+                <th className="border border-gray-300 px-3 py-2 text-left w-44">Data / Horário</th>
+                <th className="border border-gray-300 px-3 py-2 text-left w-20">Status</th>
               </tr>
             </thead>
             <tbody>
-              {order.scannedCodes.map((code, i) => (
-                <tr key={code} className={i % 2 === 0 ? "" : "bg-gray-50 print:bg-gray-50"}>
+              {order.scannedCodes.map((scan, i) => (
+                <tr key={scan.id} className={i % 2 === 0 ? "" : "bg-gray-50 print:bg-gray-50"}>
                   <td className="border border-gray-300 px-3 py-1.5 text-gray-500">{i + 1}</td>
-                  <td className="border border-gray-300 px-3 py-1.5 font-mono">{code}</td>
+                  <td className="border border-gray-300 px-3 py-1.5 font-mono">{scan.barcode}</td>
+                  <td className="border border-gray-300 px-3 py-1.5 text-xs">{formatDateTimeBR(scan.scanned_at)}</td>
                   <td className="border border-gray-300 px-3 py-1.5 text-green-600">✓ OK</td>
                 </tr>
               ))}
