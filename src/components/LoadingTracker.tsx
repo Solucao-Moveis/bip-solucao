@@ -142,9 +142,16 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         <Link to="/">
           <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
         </Link>
-        <Badge variant={isComplete ? "default" : "secondary"} className={isComplete ? "bg-success text-success-foreground" : ""}>
-          {isComplete ? "Finalizado" : "Em andamento"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {!isComplete && (
+            <Button variant="outline" size="sm" onClick={() => setShowEditDialog(true)}>
+              <Pencil className="h-3.5 w-3.5 mr-1" />Editar
+            </Button>
+          )}
+          <Badge variant={isComplete ? "default" : "secondary"} className={isComplete ? "bg-success text-success-foreground" : ""}>
+            {isComplete ? "Finalizado" : "Em andamento"}
+          </Badge>
+        </div>
       </div>
 
       <Card>
@@ -169,20 +176,27 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               <p className="font-medium">{order.driver}</p>
             </div>
             <div className="space-y-1">
+              <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />Cidade</span>
+              <p className="font-medium">{order.city || "—"}</p>
+            </div>
+            <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Truck className="h-3 w-3" />Placa</span>
               <p className="font-medium">{order.vehiclePlate}</p>
             </div>
             <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Data</span>
-              <p className="font-medium">{new Date(order.loadingDate).toLocaleDateString("pt-BR")}</p>
+              <p className="font-medium">{formatDateBR(order.loadingDate)}</p>
             </div>
           </div>
           {order.items.length > 0 && (
             <div className="mt-3 border-t pt-3 space-y-1">
-              <span className="text-xs font-semibold text-muted-foreground uppercase">Produtos</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Produtos / Pacotes</span>
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span>{item.product?.name ?? "Produto"} ({item.product?.code ?? "—"})</span>
+                  <span>
+                    {item.package_label && <span className="font-semibold text-primary mr-1">[{item.package_label}]</span>}
+                    {item.product?.name ?? "Produto"} ({item.product?.code ?? "—"})
+                  </span>
                   <span className="font-medium">
                     {item.quantity} pct
                     {item.units_per_package > 1 && ` × ${item.units_per_package} und`}
