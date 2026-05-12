@@ -7,22 +7,28 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { createOrder, getProducts, type Product } from "@/lib/loading-store";
-import { Truck, Package, User, Calendar, FileText, Hash, Plus, Trash2 } from "lucide-react";
+import { Truck, Package, User, Calendar, FileText, Hash, Plus, Trash2, MapPin, Tag } from "lucide-react";
 
 interface OrderItemInput {
   productId: string;
   quantity: string;
   unitsPerPackage: string;
+  packageLabel: string;
 }
+
+const nextLabel = (i: number) => `Pacote ${String.fromCharCode(65 + (i % 26))}`;
 
 export function OrderForm() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<OrderItemInput[]>([{ productId: "", quantity: "", unitsPerPackage: "1" }]);
+  const [items, setItems] = useState<OrderItemInput[]>([
+    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0) },
+  ]);
   const [form, setForm] = useState({
     orderNumber: "",
     driver: "",
+    city: "",
     vehiclePlate: "",
     loadingDate: "",
     observations: "",
@@ -37,7 +43,12 @@ export function OrderForm() {
     e.preventDefault();
     const parsedItems = items
       .filter((item) => item.productId && item.quantity)
-      .map((item) => ({ productId: item.productId, quantity: parseInt(item.quantity, 10), unitsPerPackage: parseInt(item.unitsPerPackage, 10) || 1 }))
+      .map((item) => ({
+        productId: item.productId,
+        quantity: parseInt(item.quantity, 10),
+        unitsPerPackage: parseInt(item.unitsPerPackage, 10) || 1,
+        packageLabel: item.packageLabel.trim() || null,
+      }))
       .filter((item) => item.quantity > 0);
 
     if (!form.orderNumber || parsedItems.length === 0 || !form.driver || !form.vehiclePlate || !form.loadingDate) return;
@@ -48,6 +59,7 @@ export function OrderForm() {
         orderNumber: form.orderNumber,
         items: parsedItems,
         driver: form.driver,
+        city: form.city,
         vehiclePlate: form.vehiclePlate,
         loadingDate: form.loadingDate,
         observations: form.observations,
@@ -66,7 +78,10 @@ export function OrderForm() {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
   };
 
-  const addItem = () => setItems((prev) => [...prev, { productId: "", quantity: "", unitsPerPackage: "1" }]);
+  const addItem = () => setItems((prev) => [
+    ...prev,
+    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length) },
+  ]);
 
   const removeItem = (index: number) => {
     if (items.length <= 1) return;
@@ -111,6 +126,13 @@ export function OrderForm() {
               <Input id="driver" placeholder="Nome do motorista" required value={form.driver} onChange={(e) => update("driver", e.target.value)} />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="city" className="flex items-center gap-2">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                Cidade do Pedido
+              </Label>
+              <Input id="city" placeholder="Ex: São Paulo - SP" value={form.city} onChange={(e) => update("city", e.target.value)} />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="vehiclePlate" className="flex items-center gap-2">
                 <Truck className="h-3.5 w-3.5 text-muted-foreground" />
                 Placa do Veículo
@@ -131,16 +153,19 @@ export function OrderForm() {
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-2">
                 <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                Produtos
+                Produtos / Tipos de Pacote
               </Label>
               <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                <Plus className="h-3.5 w-3.5 mr-1" />Adicionar Produto
+                <Plus className="h-3.5 w-3.5 mr-1" />Adicionar Pacote
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Use um item por tipo de pacote. Para o mesmo produto com pacotes diferentes (Pacote A, B, C…), adicione um item para cada tipo.
+            </p>
             <div className="space-y-2">
               {items.map((item, index) => (
-                <div key={index} className="flex gap-2 items-end">
-                  <div className="flex-1">
+                <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-12 md:col-span-4">
                     {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Produto</Label>}
                     <select
                       required
@@ -148,7 +173,7 @@ export function OrderForm() {
                       onChange={(e) => updateItem(index, "productId", e.target.value)}
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
                     >
-                      <option value="">Selecione o produto</option>
+                      <option value="">Selecione</option>
                       {products.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name} ({p.code})
@@ -156,7 +181,15 @@ export function OrderForm() {
                       ))}
                     </select>
                   </div>
-                  <div className="w-28">
+                  <div className="col-span-6 md:col-span-3">
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1"><Tag className="h-3 w-3" />Tipo Pacote</Label>}
+                    <Input
+                      placeholder="Pacote A"
+                      value={item.packageLabel}
+                      onChange={(e) => updateItem(index, "packageLabel", e.target.value)}
+                    />
+                  </div>
+                  <div className="col-span-3 md:col-span-2">
                     {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Pacotes</Label>}
                     <Input
                       type="number"
@@ -167,8 +200,8 @@ export function OrderForm() {
                       onChange={(e) => updateItem(index, "quantity", e.target.value)}
                     />
                   </div>
-                  <div className="w-28">
-                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Und/Pacote</Label>}
+                  <div className="col-span-2 md:col-span-2">
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Und/Pct</Label>}
                     <Input
                       type="number"
                       min="1"
@@ -177,16 +210,18 @@ export function OrderForm() {
                       onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)}
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 shrink-0"
-                    onClick={() => removeItem(index)}
-                    disabled={items.length <= 1}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="col-span-1 md:col-span-1 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      onClick={() => removeItem(index)}
+                      disabled={items.length <= 1}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
