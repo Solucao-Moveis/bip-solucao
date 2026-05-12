@@ -290,12 +290,18 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-48 overflow-y-auto space-y-1">
-              {order.scannedCodes.map((code, i) => (
-                <div key={code} className="flex items-center justify-between py-1.5 px-3 rounded-md bg-secondary/50 text-sm">
-                  <span className="text-muted-foreground w-8">#{i + 1}</span>
-                  <span className="font-mono font-medium flex-1">{code}</span>
-                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {order.scannedCodes.map((scan, i) => (
+                <div key={scan.id} className="flex items-center justify-between gap-2 py-1.5 px-3 rounded-md bg-secondary/50 text-sm">
+                  <span className="text-muted-foreground w-8 shrink-0">#{i + 1}</span>
+                  <span className="font-mono font-medium flex-1 truncate">{scan.barcode}</span>
+                  <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline">{formatDateTimeBR(scan.scanned_at)}</span>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                  {!isComplete && (
+                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => handleRemoveScan(scan.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -328,6 +334,8 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditOrderDialog order={order} open={showEditDialog} onOpenChange={setShowEditDialog} onSaved={loadOrder} />
     </div>
   );
 }
