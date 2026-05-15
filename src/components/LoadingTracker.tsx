@@ -251,6 +251,28 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               <BarcodeScanner ref={scannerRef} onScan={handleCameraScan} onClose={closeScanner} />
             )}
             <form onSubmit={handleScan} className="space-y-3">
+              {needsPackageSelector && (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Pacote sendo bipado</label>
+                  <select
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={selectedItemId}
+                    onChange={(e) => setSelectedItemId(e.target.value)}
+                  >
+                    <option value="">Selecione o pacote...</option>
+                    {order.items.map((item) => {
+                      const scanned = order.scannedCodes.filter(
+                        (s) => s.product_id === item.product_id && (s.package_label ?? null) === (item.package_label ?? null)
+                      ).length;
+                      return (
+                        <option key={item.id} value={item.id}>
+                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"} ({scanned}/{item.quantity})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
               <div className="relative">
                 <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -311,6 +333,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               {order.scannedCodes.map((scan, i) => (
                 <div key={scan.id} className="flex items-center justify-between gap-2 py-1.5 px-3 rounded-md bg-secondary/50 text-sm">
                   <span className="text-muted-foreground w-8 shrink-0">#{i + 1}</span>
+                  {scan.package_label && (
+                    <span className="text-xs font-semibold text-primary shrink-0">[{scan.package_label}]</span>
+                  )}
                   <span className="font-mono font-medium flex-1 truncate">{scan.barcode}</span>
                   <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline">{formatDateTimeBR(scan.scanned_at)}</span>
                   <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
