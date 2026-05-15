@@ -2,16 +2,19 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { getOrder, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
-import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2, MapPin } from "lucide-react";
+import { getOrderPhotos, type LoadingPhoto } from "@/lib/photos";
+import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2, MapPin, Camera } from "lucide-react";
 
 export function LoadingReport({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
+  const [photos, setPhotos] = useState<LoadingPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getOrder(orderId).then((o) => {
+    Promise.all([getOrder(orderId), getOrderPhotos(orderId)]).then(([o, ps]) => {
       setOrder(o);
+      setPhotos(ps);
       setLoading(false);
     });
   }, [orderId]);
