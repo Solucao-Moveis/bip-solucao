@@ -264,9 +264,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                       const scanned = order.scannedCodes.filter(
                         (s) => s.product_id === item.product_id && (s.package_label ?? null) === (item.package_label ?? null)
                       ).length;
+                      const full = scanned >= item.quantity;
                       return (
-                        <option key={item.id} value={item.id}>
-                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"} ({scanned}/{item.quantity})
+                        <option key={item.id} value={item.id} disabled={full}>
+                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"} ({scanned}/{item.quantity}){full ? " ✓ COMPLETO" : ""}
                         </option>
                       );
                     })}
