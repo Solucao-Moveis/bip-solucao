@@ -38,11 +38,17 @@ function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-              <Truck className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <img src={logo} alt="Solução Móveis" className="h-12 object-contain" />
+          <div
+            className="flex items-center justify-center p-4 rounded-lg border"
+            style={{
+              backgroundImage:
+                "linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)",
+              backgroundSize: "20px 20px",
+              backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
+              backgroundColor: "#ffffff",
+            }}
+          >
+            <img src={logo} alt="Solução Móveis" className="h-16 object-contain" />
           </div>
           <CardTitle>Controle de Carregamento</CardTitle>
           <CardDescription>Faça login para acessar o sistema</CardDescription>
