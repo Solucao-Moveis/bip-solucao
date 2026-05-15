@@ -23,6 +23,7 @@ export interface ScannedCode {
   id: string;
   barcode: string;
   product_id: string | null;
+  package_label: string | null;
   scanned_at: string;
 }
 
@@ -103,7 +104,7 @@ async function fetchOrderItems(orderId: string): Promise<OrderItem[]> {
 async function fetchScannedCodes(orderId: string): Promise<ScannedCode[]> {
   const { data, error } = await supabase
     .from("scanned_codes")
-    .select("id, barcode, product_id, scanned_at")
+    .select("id, barcode, product_id, scanned_at, package_label")
     .eq("order_id", orderId)
     .order("scanned_at");
   if (error) return [];
@@ -256,7 +257,8 @@ export async function updateOrder(
 
 export async function addScannedCode(
   orderId: string,
-  code: string
+  code: string,
+  selectedItemId?: string | null
 ): Promise<{ success: boolean; error?: string }> {
   const order = await getOrder(orderId);
   if (!order) return { success: false, error: "Pedido não encontrado" };
@@ -272,27 +274,50 @@ export async function addScannedCode(
     .limit(1);
   const matchedProduct = prodMatches?.[0];
 
-  // Check per-product limit if we can identify the product
+  let targetItem = selectedItemId ? order.items.find((i) => i.id === selectedItemId) : undefined;
+
   if (matchedProduct) {
     const productItems = order.items.filter((i) => i.product_id === matchedProduct.id);
     if (productItems.length === 0) {
       return { success: false, error: `Produto "${matchedProduct.name}" não faz parte deste carregamento` };
     }
-    const allowedForProduct = productItems.reduce((sum, i) => sum + i.quantity, 0);
-    const scannedForProduct = order.scannedCodes.filter((s) => s.product_id === matchedProduct.id).length;
-    if (scannedForProduct >= allowedForProduct) {
-      return { success: false, error: `Quantidade máxima atingida para "${matchedProduct.name}" (${allowedForProduct})` };
+    // Enforce that selected item matches the bipped product
+    if (targetItem && targetItem.product_id !== matchedProduct.id) {
+      return { success: false, error: `O pacote selecionado não pertence ao produto "${matchedProduct.name}"` };
     }
-  } else {
+    // If product has multiple package types in this order, require selection
+    if (!targetItem) {
+      if (productItems.length > 1) {
+        return { success: false, error: `Selecione qual pacote (${productItems.map((i) => i.package_label || "—").join(", ")}) está sendo bipado` };
+      }
+      targetItem = productItems[0];
+    }
+  } else if (!targetItem) {
     // Fallback: enforce total
     if (order.scannedCodes.length >= order.quantity) {
       return { success: false, error: "Quantidade máxima atingida" };
     }
   }
 
+  // Per-item (per-package_label) limit
+  if (targetItem) {
+    const scannedForItem = order.scannedCodes.filter(
+      (s) => s.product_id === targetItem!.product_id && (s.package_label ?? null) === (targetItem!.package_label ?? null)
+    ).length;
+    if (scannedForItem >= targetItem.quantity) {
+      const label = targetItem.package_label ? ` "${targetItem.package_label}"` : "";
+      return { success: false, error: `Quantidade máxima atingida para o pacote${label} (${targetItem.quantity})` };
+    }
+  }
+
   const { error } = await supabase
     .from("scanned_codes")
-    .insert({ order_id: orderId, barcode: trimmed, product_id: matchedProduct?.id ?? null });
+    .insert({
+      order_id: orderId,
+      barcode: trimmed,
+      product_id: matchedProduct?.id ?? targetItem?.product_id ?? null,
+      package_label: targetItem?.package_label ?? null,
+    } as never);
   if (error) {
     if (error.code === "23505") return { success: false, error: "Código duplicado no banco" };
     return { success: false, error: error.message };
@@ -302,7 +327,8 @@ export async function addScannedCode(
   const newStatus = newCount >= order.quantity ? "completed" : "in_progress";
   await supabase.from("loading_orders").update({ status: newStatus }).eq("id", orderId);
 
-  await logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}` });
+  const labelDesc = targetItem?.package_label ? ` [${targetItem.package_label}]` : "";
+  await logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}${labelDesc}` });
   return { success: true };
 }
 
