@@ -139,6 +139,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
             <thead>
               <tr className="bg-gray-100 print:bg-gray-100">
                 <th className="border border-gray-300 px-3 py-2 text-left w-12">#</th>
+                <th className="border border-gray-300 px-3 py-2 text-left w-24">Pacote</th>
                 <th className="border border-gray-300 px-3 py-2 text-left">Código de Barras</th>
                 <th className="border border-gray-300 px-3 py-2 text-left w-44">Data / Horário</th>
                 <th className="border border-gray-300 px-3 py-2 text-left w-20">Status</th>
@@ -148,6 +149,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
               {order.scannedCodes.map((scan, i) => (
                 <tr key={scan.id} className={i % 2 === 0 ? "" : "bg-gray-50 print:bg-gray-50"}>
                   <td className="border border-gray-300 px-3 py-1.5 text-gray-500">{i + 1}</td>
+                  <td className="border border-gray-300 px-3 py-1.5 font-semibold">{scan.package_label || "—"}</td>
                   <td className="border border-gray-300 px-3 py-1.5 font-mono">{scan.barcode}</td>
                   <td className="border border-gray-300 px-3 py-1.5 text-xs">{formatDateTimeBR(scan.scanned_at)}</td>
                   <td className="border border-gray-300 px-3 py-1.5 text-green-600">✓ OK</td>

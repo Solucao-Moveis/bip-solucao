@@ -40,9 +40,21 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
     if (!loading) inputRef.current?.focus();
   }, [loading]);
 
+  const [selectedItemId, setSelectedItemId] = useState<string>("");
+
+  // Determine if package selector is needed (any product with >1 package types)
+  const needsPackageSelector = (() => {
+    if (!order) return false;
+    const byProduct = new Map<string, number>();
+    for (const it of order.items) {
+      byProduct.set(it.product_id, (byProduct.get(it.product_id) ?? 0) + 1);
+    }
+    return Array.from(byProduct.values()).some((n) => n > 1);
+  })();
+
   const processScan = useCallback(async (code: string) => {
     if (!code.trim()) return;
-    const result = await addScannedCode(orderId, code.trim());
+    const result = await addScannedCode(orderId, code.trim(), selectedItemId || null);
     if (result.success) {
       setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
       await loadOrder();
@@ -50,7 +62,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
       setFeedback({ type: "error", message: result.error || "Erro" });
     }
     setTimeout(() => setFeedback(null), 3000);
-  }, [orderId, loadOrder]);
+  }, [orderId, loadOrder, selectedItemId]);
 
   const requestCameraAndOpenScanner = useCallback(async () => {
     if (showScanner) return;
@@ -84,10 +96,15 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
       await requestCameraAndOpenScanner();
       return;
     }
+    if (needsPackageSelector && !selectedItemId) {
+      setFeedback({ type: "error", message: "Selecione qual pacote está sendo bipado" });
+      setTimeout(() => setFeedback(null), 3000);
+      return;
+    }
     await processScan(code);
     setBarcodeInput("");
     inputRef.current?.focus();
-  }, [barcodeInput, processScan, requestCameraAndOpenScanner]);
+  }, [barcodeInput, processScan, requestCameraAndOpenScanner, needsPackageSelector, selectedItemId]);
 
   const handleCameraScan = useCallback(async (code: string) => {
     setShowScanner(false);
@@ -234,6 +251,28 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               <BarcodeScanner ref={scannerRef} onScan={handleCameraScan} onClose={closeScanner} />
             )}
             <form onSubmit={handleScan} className="space-y-3">
+              {needsPackageSelector && (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Pacote sendo bipado</label>
+                  <select
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={selectedItemId}
+                    onChange={(e) => setSelectedItemId(e.target.value)}
+                  >
+                    <option value="">Selecione o pacote...</option>
+                    {order.items.map((item) => {
+                      const scanned = order.scannedCodes.filter(
+                        (s) => s.product_id === item.product_id && (s.package_label ?? null) === (item.package_label ?? null)
+                      ).length;
+                      return (
+                        <option key={item.id} value={item.id}>
+                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"} ({scanned}/{item.quantity})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
               <div className="relative">
                 <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -294,6 +333,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
               {order.scannedCodes.map((scan, i) => (
                 <div key={scan.id} className="flex items-center justify-between gap-2 py-1.5 px-3 rounded-md bg-secondary/50 text-sm">
                   <span className="text-muted-foreground w-8 shrink-0">#{i + 1}</span>
+                  {scan.package_label && (
+                    <span className="text-xs font-semibold text-primary shrink-0">[{scan.package_label}]</span>
+                  )}
                   <span className="font-mono font-medium flex-1 truncate">{scan.barcode}</span>
                   <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline">{formatDateTimeBR(scan.scanned_at)}</span>
                   <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
