@@ -15,6 +15,7 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   const load = async () => setPhotos(await getOrderPhotos(orderId));
 
@@ -59,11 +60,17 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
           Registro Fotográfico ({photos.length})
         </CardTitle>
         {!locked && (
-          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}>
-            <ImagePlus className="h-4 w-4 mr-1" />Adicionar Foto
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => cameraRef.current?.click()}>
+              <Camera className="h-4 w-4 mr-1" />Tirar Foto
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}>
+              <ImagePlus className="h-4 w-4 mr-1" />Galeria
+            </Button>
+          </div>
         )}
-        <Input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onPick} />
+        <Input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onPick} />
+        <Input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
       </CardHeader>
       <CardContent>
         {photos.length === 0 ? (
