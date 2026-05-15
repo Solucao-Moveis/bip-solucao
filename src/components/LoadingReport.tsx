@@ -2,16 +2,19 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { getOrder, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
-import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2, MapPin } from "lucide-react";
+import { getOrderPhotos, type LoadingPhoto } from "@/lib/photos";
+import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2, MapPin, Camera } from "lucide-react";
 
 export function LoadingReport({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
+  const [photos, setPhotos] = useState<LoadingPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getOrder(orderId).then((o) => {
+    Promise.all([getOrder(orderId), getOrderPhotos(orderId)]).then(([o, ps]) => {
       setOrder(o);
+      setPhotos(ps);
       setLoading(false);
     });
   }, [orderId]);
@@ -158,6 +161,25 @@ export function LoadingReport({ orderId }: { orderId: string }) {
             </tbody>
           </table>
         </div>
+
+        {/* Photos */}
+        {photos.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1">
+              <Camera className="h-4 w-4" />Registro Fotográfico ({photos.length})
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {photos.map((p) => (
+                <div key={p.id} className="border rounded-lg overflow-hidden print:border-gray-400 break-inside-avoid">
+                  <img src={p.url} alt={p.caption || "Foto"} className="w-full h-48 object-cover" />
+                  <div className="p-2 text-sm text-gray-700 border-t print:border-gray-300">
+                    {p.caption || <span className="text-gray-400 italic">Sem legenda</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Signatures */}
         <div className="mt-12 grid grid-cols-2 gap-12">
