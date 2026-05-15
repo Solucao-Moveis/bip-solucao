@@ -317,6 +317,7 @@ export async function removeScannedCode(scanId: string): Promise<{ success: bool
   if (scan?.order_id) {
     await supabase.from("loading_orders").update({ status: "in_progress" }).eq("id", scan.order_id);
   }
+  await logAction({ action: "scan_remove", entity: "scanned_code", entity_id: scanId, description: `Removeu bipe` });
   return { success: true };
 }
 
@@ -347,6 +348,7 @@ export async function cancelOrder(orderId: string): Promise<{ success: boolean; 
   await supabase.from("loading_order_items").delete().eq("order_id", orderId);
   await supabase.from("loading_orders").delete().eq("id", orderId);
 
+  await logAction({ action: "delete", entity: "loading_order", entity_id: orderId, description: `Cancelou carregamento ${order.order_number}` });
   return { success: true };
 }
 
