@@ -1,0 +1,1 @@
+ALTER TABLE public.scanned_codes ADD COLUMN IF NOT EXISTS package_label text;

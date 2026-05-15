@@ -195,6 +195,7 @@ export type Database = {
           barcode: string
           id: string
           order_id: string
+          package_label: string | null
           product_id: string | null
           scanned_at: string
         }
@@ -202,6 +203,7 @@ export type Database = {
           barcode: string
           id?: string
           order_id: string
+          package_label?: string | null
           product_id?: string | null
           scanned_at?: string
         }
@@ -209,6 +211,7 @@ export type Database = {
           barcode?: string
           id?: string
           order_id?: string
+          package_label?: string | null
           product_id?: string | null
           scanned_at?: string
         }
