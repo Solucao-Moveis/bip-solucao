@@ -49,7 +49,7 @@ export async function getProducts(): Promise<Product[]> {
     .from("products")
     .select("*")
     .eq("active", true)
-    .order("name");
+    .order("code");
   if (error) throw error;
   return data ?? [];
 }
