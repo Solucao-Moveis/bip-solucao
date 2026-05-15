@@ -171,11 +171,11 @@ export function OrderForm() {
                       required
                       value={item.productId}
                       onChange={(e) => updateItem(index, "productId", e.target.value)}
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
+                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm [&>option]:bg-background [&>option]:text-foreground"
                     >
-                      <option value="">Selecione</option>
+                      <option value="" className="bg-background text-foreground">Selecione</option>
                       {products.map((p) => (
-                        <option key={p.id} value={p.id}>
+                        <option key={p.id} value={p.id} className="bg-background text-foreground">
                           {p.name} ({p.code})
                         </option>
                       ))}

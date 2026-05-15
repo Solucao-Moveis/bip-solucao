@@ -7,8 +7,9 @@ import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, Clock, CheckCircle2, Hash, XCircle } from "lucide-react";
+import { Truck, Package, Clock, CheckCircle2, Hash, XCircle, Shield, LogOut } from "lucide-react";
 import logo from "@/assets/logo.jfif";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [orders, setOrders] = useState<LoadingOrder[]>([]);
+  const { user, isAdmin, signOut } = useAuth();
 
   const loadOrders = () => getOrders().then(setOrders);
 
@@ -35,17 +37,27 @@ function Index() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
               <Truck className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">Controle de Carregamento</h1>
-              <p className="text-xs text-muted-foreground">Sistema de rastreamento de pacotes</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
           </div>
-          <img src={logo} alt="Solução Móveis" className="h-10 object-contain" />
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link to="/admin">
+                <Button variant="outline" size="sm"><Shield className="h-4 w-4 mr-1" />Admin</Button>
+              </Link>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => signOut()}>
+              <LogOut className="h-4 w-4 mr-1" />Sair
+            </Button>
+            <img src={logo} alt="Solução Móveis" className="h-10 object-contain" />
+          </div>
         </div>
       </header>
 
