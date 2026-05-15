@@ -204,8 +204,8 @@ export async function createOrder(data: {
   await supabase.from("loading_order_items").insert(itemsToInsert);
 
   const items = await fetchOrderItems(order.id);
+  await logAction({ action: "create", entity: "loading_order", entity_id: order.id, description: `Criou carregamento ${data.orderNumber} (${data.driver} / ${data.vehiclePlate})` });
   return mapOrder(order, [], items);
-}
 
 export async function updateOrder(
   orderId: string,
@@ -249,6 +249,7 @@ export async function updateOrder(
   if (itemsToInsert.length > 0) {
     await supabase.from("loading_order_items").insert(itemsToInsert);
   }
+  await logAction({ action: "update", entity: "loading_order", entity_id: orderId, description: `Editou carregamento ${data.orderNumber}` });
   return { success: true };
 }
 
@@ -300,6 +301,7 @@ export async function addScannedCode(
   const newStatus = newCount >= order.quantity ? "completed" : "in_progress";
   await supabase.from("loading_orders").update({ status: newStatus }).eq("id", orderId);
 
+  await logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}` });
   return { success: true };
 }
 
