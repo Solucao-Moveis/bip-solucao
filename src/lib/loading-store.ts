@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "./audit";
 
 export interface Product {
   id: string;
