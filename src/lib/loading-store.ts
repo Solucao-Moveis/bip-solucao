@@ -62,12 +62,14 @@ export async function updateProduct(id: string, product: { name: string; code: s
     .select()
     .single();
   if (error) throw error;
+  await logAction({ action: "update", entity: "product", entity_id: id, description: `Editou produto ${product.name} (${product.code})` });
   return data;
 }
 
 export async function deleteProduct(id: string) {
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) throw error;
+  await logAction({ action: "delete", entity: "product", entity_id: id, description: `Excluiu produto ${id}` });
 }
 
 export async function createProduct(product: { name: string; code: string; description?: string }) {
@@ -77,6 +79,7 @@ export async function createProduct(product: { name: string; code: string; descr
     .select()
     .single();
   if (error) throw error;
+  await logAction({ action: "create", entity: "product", entity_id: data.id, description: `Cadastrou produto ${product.name} (${product.code})` });
   return data;
 }
 
