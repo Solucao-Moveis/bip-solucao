@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "./audit";
 
 export interface Product {
   id: string;
@@ -61,12 +62,14 @@ export async function updateProduct(id: string, product: { name: string; code: s
     .select()
     .single();
   if (error) throw error;
+  await logAction({ action: "update", entity: "product", entity_id: id, description: `Editou produto ${product.name} (${product.code})` });
   return data;
 }
 
 export async function deleteProduct(id: string) {
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) throw error;
+  await logAction({ action: "delete", entity: "product", entity_id: id, description: `Excluiu produto ${id}` });
 }
 
 export async function createProduct(product: { name: string; code: string; description?: string }) {
@@ -76,6 +79,7 @@ export async function createProduct(product: { name: string; code: string; descr
     .select()
     .single();
   if (error) throw error;
+  await logAction({ action: "create", entity: "product", entity_id: data.id, description: `Cadastrou produto ${product.name} (${product.code})` });
   return data;
 }
 
@@ -200,6 +204,7 @@ export async function createOrder(data: {
   await supabase.from("loading_order_items").insert(itemsToInsert);
 
   const items = await fetchOrderItems(order.id);
+  await logAction({ action: "create", entity: "loading_order", entity_id: order.id, description: `Criou carregamento ${data.orderNumber} (${data.driver} / ${data.vehiclePlate})` });
   return mapOrder(order, [], items);
 }
 
@@ -245,6 +250,7 @@ export async function updateOrder(
   if (itemsToInsert.length > 0) {
     await supabase.from("loading_order_items").insert(itemsToInsert);
   }
+  await logAction({ action: "update", entity: "loading_order", entity_id: orderId, description: `Editou carregamento ${data.orderNumber}` });
   return { success: true };
 }
 
@@ -296,6 +302,7 @@ export async function addScannedCode(
   const newStatus = newCount >= order.quantity ? "completed" : "in_progress";
   await supabase.from("loading_orders").update({ status: newStatus }).eq("id", orderId);
 
+  await logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}` });
   return { success: true };
 }
 
@@ -310,6 +317,7 @@ export async function removeScannedCode(scanId: string): Promise<{ success: bool
   if (scan?.order_id) {
     await supabase.from("loading_orders").update({ status: "in_progress" }).eq("id", scan.order_id);
   }
+  await logAction({ action: "scan_remove", entity: "scanned_code", entity_id: scanId, description: `Removeu bipe` });
   return { success: true };
 }
 
@@ -340,6 +348,7 @@ export async function cancelOrder(orderId: string): Promise<{ success: boolean; 
   await supabase.from("loading_order_items").delete().eq("order_id", orderId);
   await supabase.from("loading_orders").delete().eq("id", orderId);
 
+  await logAction({ action: "delete", entity: "loading_order", entity_id: orderId, description: `Cancelou carregamento ${order.order_number}` });
   return { success: true };
 }
 

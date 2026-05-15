@@ -1,4 +1,6 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 import appCss from "../styles.css?url";
 
@@ -69,5 +71,28 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  return (
+    <AuthProvider>
+      <AuthGate />
+    </AuthProvider>
+  );
+}
+
+function AuthGate() {
+  const { session, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isLoginRoute = location.pathname === "/login";
+
+  useEffect(() => {
+    if (!loading && !session && !isLoginRoute) {
+      navigate({ to: "/login" });
+    }
+  }, [loading, session, isLoginRoute, navigate]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Carregando...</div>;
+  }
+  if (!session && !isLoginRoute) return null;
   return <Outlet />;
 }
