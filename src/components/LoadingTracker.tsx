@@ -12,6 +12,7 @@ import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, Ale
 import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { EditOrderDialog } from "@/components/EditOrderDialog";
+import { PhotoCapture } from "@/components/PhotoCapture";
 
 export function LoadingTracker({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
@@ -331,6 +332,8 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </CardContent>
         </Card>
       )}
+
+      <PhotoCapture orderId={orderId} locked={isComplete} />
 
       {order.scannedCodes.length > 0 && (
         <Card>
