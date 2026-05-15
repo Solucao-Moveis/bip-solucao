@@ -57,12 +57,22 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
     const result = await addScannedCode(orderId, code.trim(), selectedItemId || null);
     if (result.success) {
       setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
+      // Auto-clear selection if this package type just got full
+      if (selectedItemId && order) {
+        const item = order.items.find((i) => i.id === selectedItemId);
+        if (item) {
+          const scannedNow = order.scannedCodes.filter(
+            (s) => s.product_id === item.product_id && (s.package_label ?? null) === (item.package_label ?? null)
+          ).length + 1;
+          if (scannedNow >= item.quantity) setSelectedItemId("");
+        }
+      }
       await loadOrder();
     } else {
       setFeedback({ type: "error", message: result.error || "Erro" });
     }
     setTimeout(() => setFeedback(null), 3000);
-  }, [orderId, loadOrder, selectedItemId]);
+  }, [orderId, loadOrder, selectedItemId, order]);
 
   const requestCameraAndOpenScanner = useCallback(async () => {
     if (showScanner) return;
@@ -264,9 +274,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                       const scanned = order.scannedCodes.filter(
                         (s) => s.product_id === item.product_id && (s.package_label ?? null) === (item.package_label ?? null)
                       ).length;
+                      const full = scanned >= item.quantity;
                       return (
-                        <option key={item.id} value={item.id}>
-                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"} ({scanned}/{item.quantity})
+                        <option key={item.id} value={item.id} disabled={full}>
+                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"} ({scanned}/{item.quantity}){full ? " ✓ COMPLETO" : ""}
                         </option>
                       );
                     })}
