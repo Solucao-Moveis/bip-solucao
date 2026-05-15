@@ -206,6 +206,7 @@ export async function createOrder(data: {
   const items = await fetchOrderItems(order.id);
   await logAction({ action: "create", entity: "loading_order", entity_id: order.id, description: `Criou carregamento ${data.orderNumber} (${data.driver} / ${data.vehiclePlate})` });
   return mapOrder(order, [], items);
+}
 
 export async function updateOrder(
   orderId: string,
