@@ -40,9 +40,21 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
     if (!loading) inputRef.current?.focus();
   }, [loading]);
 
+  const [selectedItemId, setSelectedItemId] = useState<string>("");
+
+  // Determine if package selector is needed (any product with >1 package types)
+  const needsPackageSelector = (() => {
+    if (!order) return false;
+    const byProduct = new Map<string, number>();
+    for (const it of order.items) {
+      byProduct.set(it.product_id, (byProduct.get(it.product_id) ?? 0) + 1);
+    }
+    return Array.from(byProduct.values()).some((n) => n > 1);
+  })();
+
   const processScan = useCallback(async (code: string) => {
     if (!code.trim()) return;
-    const result = await addScannedCode(orderId, code.trim());
+    const result = await addScannedCode(orderId, code.trim(), selectedItemId || null);
     if (result.success) {
       setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
       await loadOrder();
@@ -50,7 +62,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
       setFeedback({ type: "error", message: result.error || "Erro" });
     }
     setTimeout(() => setFeedback(null), 3000);
-  }, [orderId, loadOrder]);
+  }, [orderId, loadOrder, selectedItemId]);
 
   const requestCameraAndOpenScanner = useCallback(async () => {
     if (showScanner) return;
@@ -84,10 +96,15 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
       await requestCameraAndOpenScanner();
       return;
     }
+    if (needsPackageSelector && !selectedItemId) {
+      setFeedback({ type: "error", message: "Selecione qual pacote está sendo bipado" });
+      setTimeout(() => setFeedback(null), 3000);
+      return;
+    }
     await processScan(code);
     setBarcodeInput("");
     inputRef.current?.focus();
-  }, [barcodeInput, processScan, requestCameraAndOpenScanner]);
+  }, [barcodeInput, processScan, requestCameraAndOpenScanner, needsPackageSelector, selectedItemId]);
 
   const handleCameraScan = useCallback(async (code: string) => {
     setShowScanner(false);
