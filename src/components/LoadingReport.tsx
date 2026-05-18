@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { getOrder, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
 import { getOrderPhotos, type LoadingPhoto } from "@/lib/photos";
 import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2, MapPin, Camera } from "lucide-react";
+import logoSolucao from "@/assets/logo-solucao-moveis.png";
 
 export function LoadingReport({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
