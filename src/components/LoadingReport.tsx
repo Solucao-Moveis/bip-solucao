@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { getOrder, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
 import { getOrderPhotos, type LoadingPhoto } from "@/lib/photos";
 import { Printer, ArrowLeft, Truck, Package, User, Calendar, Hash, FileText, CheckCircle2, MapPin, Camera } from "lucide-react";
+import logoSolucao from "@/assets/logo-solucao-moveis.png";
 
 export function LoadingReport({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
@@ -58,7 +59,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
         <div className="border-b-2 border-gray-800 pb-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Truck className="h-8 w-8 text-gray-800" />
+              <img src={logoSolucao} alt="Solução Móveis" className="h-16 w-auto object-contain" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Relatório de Carregamento</h1>
                 <p className="text-sm text-gray-500">Documento de conferência</p>
