@@ -224,6 +224,11 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                   <span>
                     {item.package_label && <span className="font-semibold text-primary mr-1">[{item.package_label}]</span>}
                     {item.product?.name ?? "Produto"} ({item.product?.code ?? "—"})
+                    {item.city && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />{item.city}
+                      </span>
+                    )}
                   </span>
                   <span className="font-medium">
                     {item.quantity} pct

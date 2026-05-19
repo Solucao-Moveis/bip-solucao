@@ -5,13 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { getProducts, updateOrder, type LoadingOrder, type Product } from "@/lib/loading-store";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MapPin } from "lucide-react";
 
 interface ItemInput {
   productId: string;
   quantity: string;
   unitsPerPackage: string;
   packageLabel: string;
+  city: string;
 }
 
 const nextLabel = (i: number) => `Pacote ${String.fromCharCode(65 + (i % 26))}`;
@@ -45,8 +46,9 @@ export function EditOrderDialog({
           quantity: String(i.quantity),
           unitsPerPackage: String(i.units_per_package),
           packageLabel: i.package_label ?? "",
+          city: i.city ?? "",
         }))
-      : [{ productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0) }],
+      : [{ productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0), city: "" }],
   );
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export function EditOrderDialog({
   const updateItem = (index: number, field: keyof ItemInput, value: string) =>
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, [field]: value } : it)));
   const addItem = () =>
-    setItems((prev) => [...prev, { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length) }]);
+    setItems((prev) => [...prev, { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length), city: "" }]);
   const removeItem = (index: number) => {
     if (items.length <= 1) return;
     setItems((prev) => prev.filter((_, i) => i !== index));
@@ -72,6 +74,7 @@ export function EditOrderDialog({
         quantity: parseInt(i.quantity, 10),
         unitsPerPackage: parseInt(i.unitsPerPackage, 10) || 1,
         packageLabel: i.packageLabel.trim() || null,
+        city: i.city.trim() || null,
       }))
       .filter((i) => i.quantity > 0);
 
@@ -144,23 +147,29 @@ export function EditOrderDialog({
               </Button>
             </div>
             {items.map((item, index) => (
-              <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                <select
-                  value={item.productId}
-                  onChange={(e) => updateItem(index, "productId", e.target.value)}
-                  className="col-span-12 md:col-span-4 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-                >
-                  <option value="">Selecione</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
-                  ))}
-                </select>
-                <Input className="col-span-6 md:col-span-3" placeholder="Pacote A" value={item.packageLabel} onChange={(e) => updateItem(index, "packageLabel", e.target.value)} />
-                <Input className="col-span-3 md:col-span-2" type="number" min="1" placeholder="Qtd" value={item.quantity} onChange={(e) => updateItem(index, "quantity", e.target.value)} />
-                <Input className="col-span-2 md:col-span-2" type="number" min="1" placeholder="Und" value={item.unitsPerPackage} onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)} />
-                <Button type="button" variant="ghost" size="icon" className="col-span-1 h-9 w-9" onClick={() => removeItem(index)} disabled={items.length <= 1}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+              <div key={index} className="space-y-2 border rounded-md p-2">
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  <select
+                    value={item.productId}
+                    onChange={(e) => updateItem(index, "productId", e.target.value)}
+                    className="col-span-12 md:col-span-4 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                  >
+                    <option value="">Selecione</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                    ))}
+                  </select>
+                  <Input className="col-span-6 md:col-span-3" placeholder="Pacote A" value={item.packageLabel} onChange={(e) => updateItem(index, "packageLabel", e.target.value)} />
+                  <Input className="col-span-3 md:col-span-2" type="number" min="1" placeholder="Qtd" value={item.quantity} onChange={(e) => updateItem(index, "quantity", e.target.value)} />
+                  <Input className="col-span-2 md:col-span-2" type="number" min="1" placeholder="Und" value={item.unitsPerPackage} onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)} />
+                  <Button type="button" variant="ghost" size="icon" className="col-span-1 h-9 w-9" onClick={() => removeItem(index)} disabled={items.length <= 1}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <Input placeholder="Cidade de entrega deste produto" value={item.city} onChange={(e) => updateItem(index, "city", e.target.value)} />
+                </div>
               </div>
             ))}
           </div>

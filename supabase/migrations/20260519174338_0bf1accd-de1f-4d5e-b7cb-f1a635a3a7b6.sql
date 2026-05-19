@@ -1,0 +1,1 @@
+ALTER TABLE public.loading_order_items ADD COLUMN city text;

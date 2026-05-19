@@ -14,6 +14,7 @@ interface OrderItemInput {
   quantity: string;
   unitsPerPackage: string;
   packageLabel: string;
+  city: string;
 }
 
 const nextLabel = (i: number) => `Pacote ${String.fromCharCode(65 + (i % 26))}`;
@@ -23,7 +24,7 @@ export function OrderForm() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<OrderItemInput[]>([
-    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0) },
+    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0), city: "" },
   ]);
   const [form, setForm] = useState({
     orderNumber: "",
@@ -48,6 +49,7 @@ export function OrderForm() {
         quantity: parseInt(item.quantity, 10),
         unitsPerPackage: parseInt(item.unitsPerPackage, 10) || 1,
         packageLabel: item.packageLabel.trim() || null,
+        city: item.city.trim() || null,
       }))
       .filter((item) => item.quantity > 0);
 
@@ -80,7 +82,7 @@ export function OrderForm() {
 
   const addItem = () => setItems((prev) => [
     ...prev,
-    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length) },
+    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length), city: "" },
   ]);
 
   const removeItem = (index: number) => {
@@ -221,6 +223,14 @@ export function OrderForm() {
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
+                  </div>
+                  <div className="col-span-12">
+                    {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1"><MapPin className="h-3 w-3" />Cidade de Entrega deste produto</Label>}
+                    <Input
+                      placeholder="Ex: São Paulo - SP"
+                      value={item.city}
+                      onChange={(e) => updateItem(index, "city", e.target.value)}
+                    />
                   </div>
                 </div>
               ))}
