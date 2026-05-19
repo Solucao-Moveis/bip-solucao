@@ -49,6 +49,7 @@ export function OrderForm() {
         quantity: parseInt(item.quantity, 10),
         unitsPerPackage: parseInt(item.unitsPerPackage, 10) || 1,
         packageLabel: item.packageLabel.trim() || null,
+        city: item.city.trim() || null,
       }))
       .filter((item) => item.quantity > 0);
 
