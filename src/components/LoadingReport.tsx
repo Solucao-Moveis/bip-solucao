@@ -100,6 +100,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
                     <th className="border border-gray-300 px-3 py-2 text-left">Tipo Pacote</th>
                     <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
                     <th className="border border-gray-300 px-3 py-2 text-left w-24">Código</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left">Cidade de Entrega</th>
                     <th className="border border-gray-300 px-3 py-2 text-left w-20">Pacotes</th>
                     <th className="border border-gray-300 px-3 py-2 text-left w-24">Und/Pacote</th>
                     <th className="border border-gray-300 px-3 py-2 text-left w-24">Total Prod.</th>
@@ -111,6 +112,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
                       <td className="border border-gray-300 px-3 py-1.5 font-semibold">{item.package_label || "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5">{item.product?.name ?? "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5 font-mono">{item.product?.code ?? "—"}</td>
+                      <td className="border border-gray-300 px-3 py-1.5">{item.city || order.city || "—"}</td>
                       <td className="border border-gray-300 px-3 py-1.5">{item.quantity}</td>
                       <td className="border border-gray-300 px-3 py-1.5">{item.units_per_package}</td>
                       <td className="border border-gray-300 px-3 py-1.5 font-semibold">{item.quantity * item.units_per_package}</td>
@@ -118,6 +120,15 @@ export function LoadingReport({ orderId }: { orderId: string }) {
                   ))}
                 </tbody>
               </table>
+              {(() => {
+                const cities = Array.from(new Set(order.items.map((i) => i.city).filter((c): c is string => !!c)));
+                if (cities.length === 0) return null;
+                return (
+                  <div className="mt-2 text-sm text-gray-700">
+                    <span className="font-semibold">Cidades de Entrega:</span> {cities.join(" • ")}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
