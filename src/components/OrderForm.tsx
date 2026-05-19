@@ -14,6 +14,7 @@ interface OrderItemInput {
   quantity: string;
   unitsPerPackage: string;
   packageLabel: string;
+  city: string;
 }
 
 const nextLabel = (i: number) => `Pacote ${String.fromCharCode(65 + (i % 26))}`;
