@@ -24,7 +24,7 @@ export function OrderForm() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<OrderItemInput[]>([
-    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0) },
+    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0), city: "" },
   ]);
   const [form, setForm] = useState({
     orderNumber: "",
