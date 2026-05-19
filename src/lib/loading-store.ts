@@ -167,6 +167,7 @@ export interface OrderItemInputData {
   quantity: number;
   unitsPerPackage: number;
   packageLabel?: string | null;
+  city?: string | null;
 }
 
 export async function createOrder(data: {
@@ -203,7 +204,8 @@ export async function createOrder(data: {
     quantity: item.quantity,
     units_per_package: item.unitsPerPackage,
     package_label: item.packageLabel || null,
-  }));
+    city: item.city || null,
+  })) as never;
   await supabase.from("loading_order_items").insert(itemsToInsert);
 
   const items = await fetchOrderItems(order.id);
@@ -249,8 +251,9 @@ export async function updateOrder(
     quantity: item.quantity,
     units_per_package: item.unitsPerPackage,
     package_label: item.packageLabel || null,
-  }));
-  if (itemsToInsert.length > 0) {
+    city: item.city || null,
+  })) as never;
+  if (data.items.length > 0) {
     await supabase.from("loading_order_items").insert(itemsToInsert);
   }
   await logAction({ action: "update", entity: "loading_order", entity_id: orderId, description: `Editou carregamento ${data.orderNumber}` });
