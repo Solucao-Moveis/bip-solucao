@@ -16,6 +16,7 @@ export interface OrderItem {
   quantity: number;
   units_per_package: number;
   package_label: string | null;
+  city: string | null;
   product?: Product;
 }
 
