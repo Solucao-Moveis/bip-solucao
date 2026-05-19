@@ -147,23 +147,29 @@ export function EditOrderDialog({
               </Button>
             </div>
             {items.map((item, index) => (
-              <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                <select
-                  value={item.productId}
-                  onChange={(e) => updateItem(index, "productId", e.target.value)}
-                  className="col-span-12 md:col-span-4 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-                >
-                  <option value="">Selecione</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
-                  ))}
-                </select>
-                <Input className="col-span-6 md:col-span-3" placeholder="Pacote A" value={item.packageLabel} onChange={(e) => updateItem(index, "packageLabel", e.target.value)} />
-                <Input className="col-span-3 md:col-span-2" type="number" min="1" placeholder="Qtd" value={item.quantity} onChange={(e) => updateItem(index, "quantity", e.target.value)} />
-                <Input className="col-span-2 md:col-span-2" type="number" min="1" placeholder="Und" value={item.unitsPerPackage} onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)} />
-                <Button type="button" variant="ghost" size="icon" className="col-span-1 h-9 w-9" onClick={() => removeItem(index)} disabled={items.length <= 1}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+              <div key={index} className="space-y-2 border rounded-md p-2">
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  <select
+                    value={item.productId}
+                    onChange={(e) => updateItem(index, "productId", e.target.value)}
+                    className="col-span-12 md:col-span-4 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                  >
+                    <option value="">Selecione</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                    ))}
+                  </select>
+                  <Input className="col-span-6 md:col-span-3" placeholder="Pacote A" value={item.packageLabel} onChange={(e) => updateItem(index, "packageLabel", e.target.value)} />
+                  <Input className="col-span-3 md:col-span-2" type="number" min="1" placeholder="Qtd" value={item.quantity} onChange={(e) => updateItem(index, "quantity", e.target.value)} />
+                  <Input className="col-span-2 md:col-span-2" type="number" min="1" placeholder="Und" value={item.unitsPerPackage} onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)} />
+                  <Button type="button" variant="ghost" size="icon" className="col-span-1 h-9 w-9" onClick={() => removeItem(index)} disabled={items.length <= 1}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <Input placeholder="Cidade de entrega deste produto" value={item.city} onChange={(e) => updateItem(index, "city", e.target.value)} />
+                </div>
               </div>
             ))}
           </div>
