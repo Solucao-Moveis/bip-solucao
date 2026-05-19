@@ -49,6 +49,7 @@ export type Database = {
       }
       loading_order_items: {
         Row: {
+          city: string | null
           created_at: string
           id: string
           order_id: string
@@ -58,6 +59,7 @@ export type Database = {
           units_per_package: number
         }
         Insert: {
+          city?: string | null
           created_at?: string
           id?: string
           order_id: string
@@ -67,6 +69,7 @@ export type Database = {
           units_per_package?: number
         }
         Update: {
+          city?: string | null
           created_at?: string
           id?: string
           order_id?: string
