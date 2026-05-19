@@ -5,13 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { getProducts, updateOrder, type LoadingOrder, type Product } from "@/lib/loading-store";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MapPin } from "lucide-react";
 
 interface ItemInput {
   productId: string;
   quantity: string;
   unitsPerPackage: string;
   packageLabel: string;
+  city: string;
 }
 
 const nextLabel = (i: number) => `Pacote ${String.fromCharCode(65 + (i % 26))}`;
