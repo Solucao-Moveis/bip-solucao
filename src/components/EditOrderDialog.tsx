@@ -46,8 +46,9 @@ export function EditOrderDialog({
           quantity: String(i.quantity),
           unitsPerPackage: String(i.units_per_package),
           packageLabel: i.package_label ?? "",
+          city: i.city ?? "",
         }))
-      : [{ productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0) }],
+      : [{ productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(0), city: "" }],
   );
 
   useEffect(() => {
