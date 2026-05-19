@@ -82,7 +82,7 @@ export function OrderForm() {
 
   const addItem = () => setItems((prev) => [
     ...prev,
-    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length) },
+    { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length), city: "" },
   ]);
 
   const removeItem = (index: number) => {
