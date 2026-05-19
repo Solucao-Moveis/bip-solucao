@@ -59,7 +59,7 @@ export function EditOrderDialog({
   const updateItem = (index: number, field: keyof ItemInput, value: string) =>
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, [field]: value } : it)));
   const addItem = () =>
-    setItems((prev) => [...prev, { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length) }]);
+    setItems((prev) => [...prev, { productId: "", quantity: "", unitsPerPackage: "1", packageLabel: nextLabel(prev.length), city: "" }]);
   const removeItem = (index: number) => {
     if (items.length <= 1) return;
     setItems((prev) => prev.filter((_, i) => i !== index));
