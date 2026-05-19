@@ -74,6 +74,7 @@ export function EditOrderDialog({
         quantity: parseInt(i.quantity, 10),
         unitsPerPackage: parseInt(i.unitsPerPackage, 10) || 1,
         packageLabel: i.packageLabel.trim() || null,
+        city: i.city.trim() || null,
       }))
       .filter((i) => i.quantity > 0);
 
