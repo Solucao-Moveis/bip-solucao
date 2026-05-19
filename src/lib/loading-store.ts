@@ -98,6 +98,7 @@ async function fetchOrderItems(orderId: string): Promise<OrderItem[]> {
     quantity: item.quantity,
     units_per_package: item.units_per_package ?? 1,
     package_label: item.package_label ?? null,
+    city: item.city ?? null,
     product: item.products as Product | undefined,
   }));
 }
