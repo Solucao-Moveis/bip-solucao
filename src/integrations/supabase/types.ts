@@ -221,6 +221,7 @@ export type Database = {
         Row: {
           barcode: string
           id: string
+          item_id: string | null
           order_id: string
           package_label: string | null
           product_id: string | null
@@ -229,6 +230,7 @@ export type Database = {
         Insert: {
           barcode: string
           id?: string
+          item_id?: string | null
           order_id: string
           package_label?: string | null
           product_id?: string | null
@@ -237,6 +239,7 @@ export type Database = {
         Update: {
           barcode?: string
           id?: string
+          item_id?: string | null
           order_id?: string
           package_label?: string | null
           product_id?: string | null
