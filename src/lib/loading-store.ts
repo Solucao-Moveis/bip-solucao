@@ -25,6 +25,7 @@ export interface ScannedCode {
   barcode: string;
   product_id: string | null;
   package_label: string | null;
+  item_id: string | null;
   scanned_at: string;
 }
 
