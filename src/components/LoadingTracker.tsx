@@ -275,13 +275,12 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
                   >
                     <option value="">Selecione o pacote...</option>
                     {order.items.map((item) => {
-                      const scanned = order.scannedCodes.filter(
-                        (s) => s.product_id === item.product_id && (s.package_label ?? null) === (item.package_label ?? null)
-                      ).length;
+                      const scanned = order.scannedCodes.filter((s) => s.item_id === item.id).length;
                       const full = scanned >= item.quantity;
+                      const cityLabel = item.city ? ` — ${item.city}` : "";
                       return (
                         <option key={item.id} value={item.id} disabled={full}>
-                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"} ({scanned}/{item.quantity}){full ? " ✓ COMPLETO" : ""}
+                          {item.package_label ? `[${item.package_label}] ` : ""}{item.product?.name ?? "Produto"}{cityLabel} ({scanned}/{item.quantity}){full ? " ✓ COMPLETO" : ""}
                         </option>
                       );
                     })}
