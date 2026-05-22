@@ -25,6 +25,7 @@ export interface ScannedCode {
   barcode: string;
   product_id: string | null;
   package_label: string | null;
+  item_id: string | null;
   scanned_at: string;
 }
 
@@ -106,7 +107,7 @@ async function fetchOrderItems(orderId: string): Promise<OrderItem[]> {
 async function fetchScannedCodes(orderId: string): Promise<ScannedCode[]> {
   const { data, error } = await supabase
     .from("scanned_codes")
-    .select("id, barcode, product_id, scanned_at, package_label")
+    .select("id, barcode, product_id, scanned_at, package_label, item_id")
     .eq("order_id", orderId)
     .order("scanned_at");
   if (error) return [];
@@ -290,10 +291,13 @@ export async function addScannedCode(
     if (targetItem && targetItem.product_id !== matchedProduct.id) {
       return { success: false, error: `O pacote selecionado não pertence ao produto "${matchedProduct.name}"` };
     }
-    // If product has multiple package types in this order, require selection
+    // If product has multiple entries in this order (different packages or cities), require selection
     if (!targetItem) {
       if (productItems.length > 1) {
-        return { success: false, error: `Selecione qual pacote (${productItems.map((i) => i.package_label || "—").join(", ")}) está sendo bipado` };
+        const desc = productItems
+          .map((i) => `${i.package_label || "—"}${i.city ? ` / ${i.city}` : ""}`)
+          .join(", ");
+        return { success: false, error: `Selecione qual pacote (${desc}) está sendo bipado` };
       }
       targetItem = productItems[0];
     }
@@ -304,14 +308,13 @@ export async function addScannedCode(
     }
   }
 
-  // Per-item (per-package_label) limit
+  // Per-item limit (counted by item_id so same product to different cities are independent)
   if (targetItem) {
-    const scannedForItem = order.scannedCodes.filter(
-      (s) => s.product_id === targetItem!.product_id && (s.package_label ?? null) === (targetItem!.package_label ?? null)
-    ).length;
+    const scannedForItem = order.scannedCodes.filter((s) => s.item_id === targetItem!.id).length;
     if (scannedForItem >= targetItem.quantity) {
       const label = targetItem.package_label ? ` "${targetItem.package_label}"` : "";
-      return { success: false, error: `Quantidade máxima atingida para o pacote${label} (${targetItem.quantity})` };
+      const city = targetItem.city ? ` (${targetItem.city})` : "";
+      return { success: false, error: `Quantidade máxima atingida para o pacote${label}${city} (${targetItem.quantity})` };
     }
   }
 
@@ -322,6 +325,7 @@ export async function addScannedCode(
       barcode: trimmed,
       product_id: matchedProduct?.id ?? targetItem?.product_id ?? null,
       package_label: targetItem?.package_label ?? null,
+      item_id: targetItem?.id ?? null,
     } as never);
   if (error) {
     if (error.code === "23505") return { success: false, error: "Código duplicado no banco" };
@@ -333,7 +337,8 @@ export async function addScannedCode(
   await supabase.from("loading_orders").update({ status: newStatus }).eq("id", orderId);
 
   const labelDesc = targetItem?.package_label ? ` [${targetItem.package_label}]` : "";
-  await logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}${labelDesc}` });
+  const cityDesc = targetItem?.city ? ` {${targetItem.city}}` : "";
+  await logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}${labelDesc}${cityDesc}` });
   return { success: true };
 }
 
