@@ -107,7 +107,7 @@ async function fetchOrderItems(orderId: string): Promise<OrderItem[]> {
 async function fetchScannedCodes(orderId: string): Promise<ScannedCode[]> {
   const { data, error } = await supabase
     .from("scanned_codes")
-    .select("id, barcode, product_id, scanned_at, package_label")
+    .select("id, barcode, product_id, scanned_at, package_label, item_id")
     .eq("order_id", orderId)
     .order("scanned_at");
   if (error) return [];
