@@ -62,9 +62,6 @@ function Index() {
             >
               <Home className="h-4 w-4 mr-1" />Voltar ao ERP
             </a>
-            <Button variant="ghost" size="sm" onClick={() => signOut()}>
-              <LogOut className="h-4 w-4 mr-1" />Sair
-            </Button>
             <img src={logo} alt="Solução Móveis" className="h-10 object-contain" />
           </div>
         </div>
