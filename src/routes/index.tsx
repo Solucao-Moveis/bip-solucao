@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Truck, Package, Clock, CheckCircle2, Hash, XCircle, Shield, LogOut, Home } from "lucide-react";
-import logo from "@/assets/logo.jfif";
+import logo from "@/assets/logo-solucao-moveis.png";
 import { useAuth } from "@/hooks/useAuth";
 
 // SMERP: hub central (para o botão "Voltar ao ERP")

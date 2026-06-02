@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Truck } from "lucide-react";
-import logo from "@/assets/logo.jfif";
+import logo from "@/assets/logo-solucao-moveis.png";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -38,18 +38,7 @@ function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-3">
-          <div
-            className="flex items-center justify-center p-4 rounded-lg border"
-            style={{
-              backgroundImage:
-                "linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)",
-              backgroundSize: "20px 20px",
-              backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
-              backgroundColor: "#ffffff",
-            }}
-          >
-            <img src={logo} alt="Solução Móveis" className="h-16 object-contain" />
-          </div>
+          <img src={logo} alt="Solução Móveis" className="mx-auto h-14 w-auto object-contain" />
           <CardTitle>Controle de Carregamento</CardTitle>
           <CardDescription>Faça login para acessar o sistema</CardDescription>
         </CardHeader>
