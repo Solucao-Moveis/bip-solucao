@@ -20,6 +20,8 @@ function createSupabaseAdminClient() {
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    // SMERP: schema 'bip' do banco unificado
+    db: { schema: 'bip' as any },
     auth: {
       storage: undefined,
       persistSession: false,

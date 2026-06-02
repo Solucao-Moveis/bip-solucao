@@ -7,9 +7,12 @@ import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, Clock, CheckCircle2, Hash, XCircle, Shield, LogOut } from "lucide-react";
+import { Truck, Package, Clock, CheckCircle2, Hash, XCircle, Shield, LogOut, Home } from "lucide-react";
 import logo from "@/assets/logo.jfif";
 import { useAuth } from "@/hooks/useAuth";
+
+// SMERP: hub central (para o botão "Voltar ao ERP")
+const ERP_URL = "https://solucaomoveis-erp.h5xdag.easypanel.host/";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -53,6 +56,12 @@ function Index() {
                 <Button variant="outline" size="sm"><Shield className="h-4 w-4 mr-1" />Admin</Button>
               </Link>
             )}
+            <a
+              href={ERP_URL}
+              className="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              <Home className="h-4 w-4 mr-1" />Voltar ao ERP
+            </a>
             <Button variant="ghost" size="sm" onClick={() => signOut()}>
               <LogOut className="h-4 w-4 mr-1" />Sair
             </Button>

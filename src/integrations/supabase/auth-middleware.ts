@@ -47,6 +47,8 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       SUPABASE_URL!,
       SUPABASE_PUBLISHABLE_KEY!,
       {
+        // SMERP: schema 'bip' do banco unificado
+        db: { schema: 'bip' as any },
         global: {
           headers: {
             Authorization: `Bearer ${token}`,

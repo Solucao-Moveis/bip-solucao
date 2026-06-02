@@ -22,7 +22,8 @@ export const createUserAccount = createServerFn({ method: "POST" })
       email: data.email,
       password: data.password,
       email_confirm: true,
-      user_metadata: { full_name: data.fullName },
+      // SMERP: 'app' diz ao trigger do banco que este usuário é do sistema bip
+      user_metadata: { full_name: data.fullName, app: "bip" },
     });
     if (error) throw new Error(error.message);
 

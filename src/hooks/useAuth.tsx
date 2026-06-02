@@ -11,6 +11,25 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
 }
 
+// SMERP SSO: se o ERP abriu este app com a sessão no hash (#smerp_sso&at=&rt=),
+// adota essa sessão e limpa a URL — assim a pessoa entra sem logar de novo.
+async function consumeSmerpSso() {
+  if (typeof window === "undefined") return;
+  const hash = window.location.hash;
+  if (!hash || hash.indexOf("smerp_sso") === -1) return;
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const access_token = params.get("at");
+  const refresh_token = params.get("rt");
+  if (access_token && refresh_token) {
+    try {
+      await supabase.auth.setSession({ access_token, refresh_token });
+    } catch (e) {
+      console.error("[SMERP SSO]", e);
+    }
+  }
+  window.history.replaceState(null, "", window.location.pathname + window.location.search);
+}
+
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,7 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    (async () => {
+      await consumeSmerpSso();
+      const { data: { session: s } } = await supabase.auth.getSession();
       setSession(s);
       setLoading(false);
       if (s?.user) {
@@ -48,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .maybeSingle()
           .then(({ data }) => setIsAdmin(!!data));
       }
-    });
+    })();
 
     return () => subscription.unsubscribe();
   }, []);
