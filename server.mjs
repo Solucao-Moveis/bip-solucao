@@ -22,7 +22,8 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 // Import the SSR handler. The default export is the Web-standard worker object
 // `{ fetch }` produced by TanStack Start's server-entry.
-const serverModule = await import('./dist/server/index.js');
+// (lovable vite-config 2.3.1 nomeia o arquivo pelo entry -> server.js)
+const serverModule = await import('./dist/server/server.js');
 const handler = serverModule.default;
 
 if (!handler || typeof handler.fetch !== 'function') {
