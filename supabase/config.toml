@@ -1,1 +1,4 @@
 project_id = "dbdoacdhflrxjlngpwif"
+
+[functions.export-smerp]
+verify_jwt = false
