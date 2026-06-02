@@ -1,0 +1,38 @@
+# Keep the build context small and avoid leaking local-only files.
+node_modules
+.git
+.gitignore
+
+# Build artifacts (regenerated inside the image)
+dist
+dist-ssr
+.output
+.nitro
+.vinxi
+.tanstack
+.wrangler
+
+# Local env / secrets — never copy into the image
+.dev.vars
+*.local
+.env.local
+.env.*.local
+
+# Logs & misc
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+
+# Docker / docs that don't belong in the build
+Dockerfile
+Dockerfile.probe
+.dockerignore
+DEPLOY-EASYPANEL.md
