@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { createUserAccount, deleteUserAccount } from "@/lib/users.functions";
-import { Shield, UserPlus, Trash2, ArrowLeft, ScrollText } from "lucide-react";
+import { UserPlus, Trash2, ArrowLeft, ScrollText } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -115,21 +116,7 @@ function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold">Administração</h1>
-              <p className="text-xs text-muted-foreground">Usuários e auditoria do sistema</p>
-            </div>
-          </div>
-          <Link to="/"><Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />Voltar</Button></Link>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
+    <AppLayout pageTitle="Administração">
         <Tabs defaultValue="users">
           <TabsList>
             <TabsTrigger value="users"><UserPlus className="h-4 w-4 mr-2" />Usuários</TabsTrigger>
@@ -240,7 +227,6 @@ function AdminPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+    </AppLayout>
   );
 }

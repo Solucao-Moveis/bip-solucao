@@ -7,12 +7,8 @@ import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, Clock, CheckCircle2, Hash, XCircle, Shield, LogOut, Home } from "lucide-react";
-import logo from "@/assets/logo-solucao-moveis.png";
-import { useAuth } from "@/hooks/useAuth";
-
-// SMERP: hub central (para o botão "Voltar ao ERP")
-const ERP_URL = "https://solucaomoveis-erp.h5xdag.easypanel.host/";
+import { Package, Clock, CheckCircle2, Hash, XCircle } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,7 +22,6 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [orders, setOrders] = useState<LoadingOrder[]>([]);
-  const { user, isAdmin, signOut } = useAuth();
 
   const loadOrders = () => getOrders().then(setOrders);
 
@@ -38,36 +33,8 @@ function Index() {
   const completedOrders = orders.filter((o) => o.status === "completed");
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Truck className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Controle de Carregamento</h1>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Link to="/admin">
-                <Button variant="outline" size="sm"><Shield className="h-4 w-4 mr-1" />Admin</Button>
-              </Link>
-            )}
-            <a
-              href={ERP_URL}
-              className="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
-            >
-              <Home className="h-4 w-4 mr-1" />Voltar ao ERP
-            </a>
-            <img src={logo} alt="Solução Móveis" className="h-10 object-contain" />
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 space-y-8">
+    <AppLayout pageTitle="Carregamentos">
+      <div className="space-y-8">
         <ProductManager />
         <OrderForm />
 
@@ -94,8 +61,8 @@ function Index() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
 
