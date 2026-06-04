@@ -13,7 +13,7 @@ import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeS
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { EditOrderDialog } from "@/components/EditOrderDialog";
 import { PhotoCapture } from "@/components/PhotoCapture";
-import { homeHref, getViewMode } from "@/lib/view-mode";
+import { homeHref } from "@/lib/view-mode";
 
 export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?: () => void }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
@@ -29,11 +29,8 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
   const scannerRef = useRef<BarcodeScannerHandle>(null);
   // "Voltar" leva pra origem (modo celular → /apontar, gestão → /).
   const [backTo, setBackTo] = useState<"/" | "/apontar">("/");
-  // No modo celular a bipagem fica 100% enxuta: o bloco de fotos só aparece na gestão.
-  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     setBackTo(homeHref());
-    setIsMobile(getViewMode() === "mobile");
   }, []);
 
   const loadOrder = useCallback(async () => {
@@ -390,8 +387,8 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
       </div>
       </div>
 
-      {/* Fotos em largura total */}
-      {!isMobile && <PhotoCapture orderId={orderId} locked={isComplete} />}
+      {/* Registro fotográfico (foto + legenda/observação) — também no celular da expedição */}
+      <PhotoCapture orderId={orderId} locked={isComplete} />
 
       <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
         <DialogContent>
