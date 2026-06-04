@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { getOrder, addScannedCode, finishOrderEarly, removeScannedCode, updateOrderObservations, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
 import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, ImagePlus, Flag, MapPin, Pencil, Trash2 } from "lucide-react";
+import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { EditOrderDialog } from "@/components/EditOrderDialog";
 import { PhotoCapture, type PhotoCaptureHandle } from "@/components/PhotoCapture";
@@ -18,11 +20,13 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
   const [loading, setLoading] = useState(true);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [finishReason, setFinishReason] = useState("");
   const [finishing, setFinishing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scannerRef = useRef<BarcodeScannerHandle>(null);
   const photoRef = useRef<PhotoCaptureHandle>(null);
   // Observação editável direto na tela de bipagem (salva no carregamento).
   const [obs, setObs] = useState("");
@@ -86,11 +90,37 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
     setTimeout(() => setFeedback(null), 3000);
   }, [orderId, loadOrder, selectedItemId, order]);
 
+  const requestCameraAndOpenScanner = useCallback(async () => {
+    if (showScanner) return;
+    flushSync(() => setShowScanner(true));
+    try {
+      await scannerRef.current?.start();
+      setFeedback(null);
+    } catch (err) {
+      console.error("Camera permission error:", err);
+      setShowScanner(false);
+      const errorName = err instanceof DOMException ? err.name : "";
+      const message =
+        errorName === "NotAllowedError"
+          ? "Permissão da câmera negada. Libere o acesso à câmera nas configurações do navegador."
+          : errorName === "NotFoundError"
+            ? "Nenhuma câmera foi encontrada neste aparelho."
+            : "Não foi possível abrir a câmera. Tente novamente pelo navegador do celular.";
+      setFeedback({ type: "error", message });
+      setTimeout(() => setFeedback(null), 4000);
+    }
+  }, [showScanner]);
+
+  const closeScanner = useCallback(() => {
+    void scannerRef.current?.stop().finally(() => setShowScanner(false));
+  }, []);
+
   const handleScan = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const code = barcodeInput.trim();
     if (!code) {
-      inputRef.current?.focus();
+      // Sem código digitado/bipado: "Registrar código" abre a câmera pra escanear o código de barras.
+      await requestCameraAndOpenScanner();
       return;
     }
     if (needsPackageSelector && !selectedItemId) {
@@ -101,7 +131,12 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
     await processScan(code);
     setBarcodeInput("");
     inputRef.current?.focus();
-  }, [barcodeInput, processScan, needsPackageSelector, selectedItemId]);
+  }, [barcodeInput, processScan, requestCameraAndOpenScanner, needsPackageSelector, selectedItemId]);
+
+  const handleCameraScan = useCallback(async (code: string) => {
+    setShowScanner(false);
+    await processScan(code);
+  }, [processScan]);
 
   const handleSaveObs = useCallback(async () => {
     setSavingObs(true);
@@ -294,6 +329,9 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
       {!isComplete ? (
         <Card className="border-primary/30">
           <CardContent className="pt-6 space-y-4">
+            {showScanner && (
+              <BarcodeScanner ref={scannerRef} onScan={handleCameraScan} onClose={closeScanner} />
+            )}
             <form onSubmit={handleScan} className="space-y-3">
               {needsPackageSelector && (
                 <div className="space-y-1">
