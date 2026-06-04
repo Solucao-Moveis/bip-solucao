@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as GerencialImprimirRouteImport } from './routes/gerencial-imprimir'
+import { Route as GerencialRouteImport } from './routes/gerencial'
 import { Route as ApontarRouteImport } from './routes/apontar'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,6 +21,16 @@ import { Route as LoadingOrderIdRouteImport } from './routes/loading.$orderId'
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GerencialImprimirRoute = GerencialImprimirRouteImport.update({
+  id: '/gerencial-imprimir',
+  path: '/gerencial-imprimir',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GerencialRoute = GerencialRouteImport.update({
+  id: '/gerencial',
+  path: '/gerencial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApontarRoute = ApontarRouteImport.update({
@@ -51,6 +63,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apontar': typeof ApontarRoute
+  '/gerencial': typeof GerencialRoute
+  '/gerencial-imprimir': typeof GerencialImprimirRoute
   '/login': typeof LoginRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
@@ -59,6 +73,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apontar': typeof ApontarRoute
+  '/gerencial': typeof GerencialRoute
+  '/gerencial-imprimir': typeof GerencialImprimirRoute
   '/login': typeof LoginRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
@@ -68,6 +84,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apontar': typeof ApontarRoute
+  '/gerencial': typeof GerencialRoute
+  '/gerencial-imprimir': typeof GerencialImprimirRoute
   '/login': typeof LoginRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
@@ -78,6 +96,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apontar'
+    | '/gerencial'
+    | '/gerencial-imprimir'
     | '/login'
     | '/loading/$orderId'
     | '/report/$orderId'
@@ -86,6 +106,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apontar'
+    | '/gerencial'
+    | '/gerencial-imprimir'
     | '/login'
     | '/loading/$orderId'
     | '/report/$orderId'
@@ -94,6 +116,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apontar'
+    | '/gerencial'
+    | '/gerencial-imprimir'
     | '/login'
     | '/loading/$orderId'
     | '/report/$orderId'
@@ -103,6 +127,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ApontarRoute: typeof ApontarRoute
+  GerencialRoute: typeof GerencialRoute
+  GerencialImprimirRoute: typeof GerencialImprimirRoute
   LoginRoute: typeof LoginRoute
   LoadingOrderIdRoute: typeof LoadingOrderIdRoute
   ReportOrderIdRoute: typeof ReportOrderIdRoute
@@ -115,6 +141,20 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gerencial-imprimir': {
+      id: '/gerencial-imprimir'
+      path: '/gerencial-imprimir'
+      fullPath: '/gerencial-imprimir'
+      preLoaderRoute: typeof GerencialImprimirRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gerencial': {
+      id: '/gerencial'
+      path: '/gerencial'
+      fullPath: '/gerencial'
+      preLoaderRoute: typeof GerencialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apontar': {
@@ -159,6 +199,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ApontarRoute: ApontarRoute,
+  GerencialRoute: GerencialRoute,
+  GerencialImprimirRoute: GerencialImprimirRoute,
   LoginRoute: LoginRoute,
   LoadingOrderIdRoute: LoadingOrderIdRoute,
   ReportOrderIdRoute: ReportOrderIdRoute,

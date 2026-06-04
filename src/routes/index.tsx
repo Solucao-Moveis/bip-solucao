@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OrderForm } from "@/components/OrderForm";
 import { ProductManager } from "@/components/ProductManager";
 import { LoadingTracker } from "@/components/LoadingTracker";
-import { getOrders, cancelOrder, type LoadingOrder } from "@/lib/loading-store";
+import { getOrders, cancelOrder, formatDateBR, type LoadingOrder } from "@/lib/loading-store";
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Package, Clock, CheckCircle2, Hash, XCircle, Plus, Tag, Truck, User, MapPin } from "lucide-react";
+import { Package, Clock, CheckCircle2, Hash, XCircle, Plus, Tag, Truck, User, MapPin, Calendar } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { setViewMode } from "@/lib/view-mode";
 
@@ -29,8 +29,19 @@ function Index() {
   const [showNew, setShowNew] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"data-desc" | "data-asc" | "qtd-desc" | "qtd-asc">("data-desc");
 
   const closeTracker = () => { setSelectedId(null); loadOrders(); };
+
+  const sortFn = (a: LoadingOrder, b: LoadingOrder) => {
+    switch (sortBy) {
+      case "data-asc": return a.loadingDate.localeCompare(b.loadingDate);
+      case "data-desc": return b.loadingDate.localeCompare(a.loadingDate);
+      case "qtd-asc": return a.quantity - b.quantity;
+      case "qtd-desc": return b.quantity - a.quantity;
+      default: return 0;
+    }
+  };
 
   const loadOrders = () => getOrders().then((o) => { setOrders(o); setLoading(false); });
 
@@ -39,8 +50,8 @@ function Index() {
     loadOrders();
   }, []);
 
-  const activeOrders = orders.filter((o) => o.status !== "completed");
-  const completedOrders = orders.filter((o) => o.status === "completed");
+  const activeOrders = orders.filter((o) => o.status !== "completed").sort(sortFn);
+  const completedOrders = orders.filter((o) => o.status === "completed").sort(sortFn);
 
   return (
     <AppLayout pageTitle="Carregamentos">
@@ -55,7 +66,18 @@ function Index() {
                 : `${activeOrders.length} ativo(s) · ${completedOrders.length} finalizado(s)`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              title="Ordenar carregamentos"
+            >
+              <option value="data-desc">Data (mais recentes)</option>
+              <option value="data-asc">Data (mais antigos)</option>
+              <option value="qtd-desc">Quantidade (maior)</option>
+              <option value="qtd-asc">Quantidade (menor)</option>
+            </select>
             <Button variant="outline" onClick={() => setShowProducts(true)}>
               <Tag className="h-4 w-4 mr-2" />Produtos
             </Button>
@@ -192,6 +214,7 @@ function OrderCard({ order, onOpen, onCancel }: { order: LoadingOrder; onOpen: (
 
           {/* Meta */}
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1 font-medium text-foreground"><Calendar className="h-3 w-3" />{formatDateBR(order.loadingDate)}</span>
             <span className="flex items-center gap-1"><User className="h-3 w-3" />{order.driver}</span>
             <span className="flex items-center gap-1"><Truck className="h-3 w-3" />{order.vehiclePlate}</span>
             {order.city && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{order.city}</span>}

@@ -1,6 +1,6 @@
 import { useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Truck, Shield } from "lucide-react";
+import { Truck, Shield, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell, type NavItem } from "@/components/AppShell";
 import logo from "@/assets/logo-solucao-moveis.png";
@@ -14,6 +14,7 @@ export function AppLayout({ children, pageTitle }: { children: ReactNode; pageTi
 
   const nav: NavItem[] = [
     { to: "/", label: "Carregamentos", icon: Truck },
+    { to: "/gerencial", label: "Gerencial", icon: BarChart3 },
     ...(isAdmin ? [{ to: "/admin", label: "Administração", icon: Shield }] : []),
   ];
 
