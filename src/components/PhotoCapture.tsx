@@ -80,7 +80,19 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
             {photos.map((p) => (
               <div key={p.id} className="space-y-1">
                 <div className="relative group">
-                  <img src={p.url} alt={p.caption || "Foto"} className="w-full h-32 object-cover rounded-md border" />
+                  <a href={p.url} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={p.thumbUrl}
+                      alt={p.caption || "Foto"}
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        if (img.src !== p.url) img.src = p.url;
+                      }}
+                      className="w-full h-32 object-cover rounded-md border"
+                    />
+                  </a>
                   {!locked && (
                     <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => onDelete(p)}>
                       <Trash2 className="h-3 w-3" />

@@ -142,13 +142,50 @@ export async function getOrders(): Promise<LoadingOrder[]> {
     .select("*, products(*)")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  const result: LoadingOrder[] = [];
-  for (const o of orders ?? []) {
-    const codes = await fetchScannedCodes(o.id);
-    const items = await fetchOrderItems(o.id);
-    result.push(mapOrder(o, codes, items));
+  const list = orders ?? [];
+  if (list.length === 0) return [];
+
+  // Busca TODOS os códigos e itens de uma vez (2 queries) em vez de 2 por pedido (N+1).
+  const ids = list.map((o) => o.id);
+  const [codesRes, itemsRes] = await Promise.all([
+    supabase
+      .from("scanned_codes")
+      .select("id, barcode, product_id, scanned_at, package_label, item_id, order_id")
+      .in("order_id", ids)
+      .order("scanned_at"),
+    supabase
+      .from("loading_order_items")
+      .select("*, products(*)")
+      .in("order_id", ids)
+      .order("created_at"),
+  ]);
+
+  const codesByOrder = new Map<string, ScannedCode[]>();
+  for (const c of (codesRes.data ?? []) as any[]) {
+    const arr = codesByOrder.get(c.order_id);
+    if (arr) arr.push(c as ScannedCode);
+    else codesByOrder.set(c.order_id, [c as ScannedCode]);
   }
-  return result;
+
+  const itemsByOrder = new Map<string, OrderItem[]>();
+  for (const item of (itemsRes.data ?? []) as any[]) {
+    const mapped: OrderItem = {
+      id: item.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      units_per_package: item.units_per_package ?? 1,
+      package_label: item.package_label ?? null,
+      city: item.city ?? null,
+      product: item.products as Product | undefined,
+    };
+    const arr = itemsByOrder.get(item.order_id);
+    if (arr) arr.push(mapped);
+    else itemsByOrder.set(item.order_id, [mapped]);
+  }
+
+  return list.map((o) =>
+    mapOrder(o, codesByOrder.get(o.id) ?? [], itemsByOrder.get(o.id) ?? [])
+  );
 }
 
 export async function getOrder(id: string): Promise<LoadingOrder | undefined> {

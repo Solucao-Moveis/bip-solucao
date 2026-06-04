@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { createUserAccount, deleteUserAccount } from "@/lib/users.functions";
-import { UserPlus, Trash2, ArrowLeft, ScrollText } from "lucide-react";
+import { optimizeExistingPhotos, type BackfillProgress } from "@/lib/photos";
+import { UserPlus, Trash2, ArrowLeft, ScrollText, ImageDown } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 
 export const Route = createFileRoute("/admin")({
@@ -47,6 +48,9 @@ function AdminPage() {
   const [form, setForm] = useState({ email: "", password: "", fullName: "", isAdmin: false });
   const [creating, setCreating] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  const [optimizing, setOptimizing] = useState(false);
+  const [optProgress, setOptProgress] = useState<BackfillProgress | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
@@ -87,6 +91,20 @@ function AdminPage() {
     }
   };
 
+  const handleOptimize = async () => {
+    if (optimizing) return;
+    if (!confirm("Otimizar todas as fotos antigas? Pode levar alguns minutos. Mantenha esta aba aberta.")) return;
+    setOptimizing(true);
+    setOptProgress({ total: 0, done: 0, optimized: 0, errors: 0 });
+    try {
+      await optimizeExistingPhotos(setOptProgress);
+    } catch (err: any) {
+      alert(err?.message ?? "Erro ao otimizar fotos");
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
   const handleDelete = async (id: string, email: string) => {
     if (!confirm(`Excluir o usuário ${email}?`)) return;
     try {
@@ -121,6 +139,7 @@ function AdminPage() {
           <TabsList>
             <TabsTrigger value="users"><UserPlus className="h-4 w-4 mr-2" />Usuários</TabsTrigger>
             <TabsTrigger value="audit"><ScrollText className="h-4 w-4 mr-2" />Auditoria</TabsTrigger>
+            <TabsTrigger value="fotos"><ImageDown className="h-4 w-4 mr-2" />Fotos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
@@ -223,6 +242,45 @@ function AdminPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="fotos">
+            <Card>
+              <CardHeader>
+                <CardTitle>Otimização de fotos antigas</CardTitle>
+                <CardDescription>
+                  Recomprime as fotos pesadas já enviadas e gera as miniaturas, deixando a
+                  abertura dos carregamentos muito mais rápida. As fotos novas já sobem
+                  otimizadas automaticamente. Rode uma vez; pode levar alguns minutos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={handleOptimize} disabled={optimizing}>
+                  <ImageDown className="h-4 w-4 mr-2" />
+                  {optimizing ? "Otimizando..." : "Otimizar fotos antigas"}
+                </Button>
+                {optProgress && (
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>
+                      Progresso: <span className="font-semibold text-foreground">{optProgress.done}</span> de{" "}
+                      {optProgress.total} foto(s)
+                    </p>
+                    <p>
+                      Recomprimidas: <span className="font-semibold text-foreground">{optProgress.optimized}</span>
+                      {optProgress.errors > 0 && (
+                        <span className="ml-3 text-destructive">Erros: {optProgress.errors}</span>
+                      )}
+                    </p>
+                    {!optimizing && optProgress.total > 0 && (
+                      <p className="text-success">Concluído.</p>
+                    )}
+                    {!optimizing && optProgress.total === 0 && (
+                      <p>Nenhuma foto encontrada.</p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

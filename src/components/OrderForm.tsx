@@ -19,7 +19,7 @@ interface OrderItemInput {
 
 const nextLabel = (i: number) => `Pacote ${String.fromCharCode(65 + (i % 26))}`;
 
-export function OrderForm() {
+export function OrderForm({ bare = false }: { bare?: boolean }) {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -98,7 +98,7 @@ export function OrderForm() {
   }, 0);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className={bare ? "w-full border-0 shadow-none" : "w-full max-w-2xl mx-auto"}>
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">

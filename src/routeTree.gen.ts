@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ApontarRouteImport } from './routes/apontar'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReportOrderIdRouteImport } from './routes/report.$orderId'
@@ -18,6 +19,11 @@ import { Route as LoadingOrderIdRouteImport } from './routes/loading.$orderId'
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApontarRoute = ApontarRouteImport.update({
+  id: '/apontar',
+  path: '/apontar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -44,6 +50,7 @@ const LoadingOrderIdRoute = LoadingOrderIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/apontar': typeof ApontarRoute
   '/login': typeof LoginRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/apontar': typeof ApontarRoute
   '/login': typeof LoginRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/apontar': typeof ApontarRoute
   '/login': typeof LoginRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
@@ -68,15 +77,23 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/apontar'
     | '/login'
     | '/loading/$orderId'
     | '/report/$orderId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/login' | '/loading/$orderId' | '/report/$orderId'
+  to:
+    | '/'
+    | '/admin'
+    | '/apontar'
+    | '/login'
+    | '/loading/$orderId'
+    | '/report/$orderId'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/apontar'
     | '/login'
     | '/loading/$orderId'
     | '/report/$orderId'
@@ -85,6 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  ApontarRoute: typeof ApontarRoute
   LoginRoute: typeof LoginRoute
   LoadingOrderIdRoute: typeof LoadingOrderIdRoute
   ReportOrderIdRoute: typeof ReportOrderIdRoute
@@ -97,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apontar': {
+      id: '/apontar'
+      path: '/apontar'
+      fullPath: '/apontar'
+      preLoaderRoute: typeof ApontarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -133,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  ApontarRoute: ApontarRoute,
   LoginRoute: LoginRoute,
   LoadingOrderIdRoute: LoadingOrderIdRoute,
   ReportOrderIdRoute: ReportOrderIdRoute,

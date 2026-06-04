@@ -7,7 +7,7 @@ import { getProducts, createProduct, updateProduct, deleteProduct, type Product 
 import { Plus, Package, Tag, Barcode, Pencil, Trash2, X, Check } from "lucide-react";
 import { BarcodeLabel } from "./BarcodeLabel";
 
-export function ProductManager() {
+export function ProductManager({ bare = false }: { bare?: boolean }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -73,9 +73,9 @@ export function ProductManager() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className={bare ? "w-full border-0 shadow-none" : "w-full max-w-2xl mx-auto"}>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className={`flex items-center justify-between ${bare ? "pr-8" : ""}`}>
           <CardTitle className="text-lg flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
             Produtos Cadastrados

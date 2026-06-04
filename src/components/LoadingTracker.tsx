@@ -13,8 +13,9 @@ import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeS
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { EditOrderDialog } from "@/components/EditOrderDialog";
 import { PhotoCapture } from "@/components/PhotoCapture";
+import { homeHref, getViewMode } from "@/lib/view-mode";
 
-export function LoadingTracker({ orderId }: { orderId: string }) {
+export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?: () => void }) {
   const [order, setOrder] = useState<LoadingOrder | undefined>();
   const [loading, setLoading] = useState(true);
   const [barcodeInput, setBarcodeInput] = useState("");
@@ -26,6 +27,14 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   const [finishing, setFinishing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
+  // "Voltar" leva pra origem (modo celular → /apontar, gestão → /).
+  const [backTo, setBackTo] = useState<"/" | "/apontar">("/");
+  // No modo celular a bipagem fica 100% enxuta: o bloco de fotos só aparece na gestão.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setBackTo(homeHref());
+    setIsMobile(getViewMode() === "mobile");
+  }, []);
 
   const loadOrder = useCallback(async () => {
     const o = await getOrder(orderId);
@@ -144,9 +153,13 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
       <Card className="max-w-lg mx-auto text-center p-8">
         <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
         <p className="text-lg font-medium text-foreground">Pedido não encontrado</p>
-        <Link to="/" className="mt-4 inline-block">
-          <Button variant="outline"><ArrowLeft className="h-4 w-4 mr-2" />Voltar</Button>
-        </Link>
+        {onClose ? (
+          <Button variant="outline" className="mt-4" onClick={onClose}><ArrowLeft className="h-4 w-4 mr-2" />Voltar</Button>
+        ) : (
+          <Link to={backTo} className="mt-4 inline-block">
+            <Button variant="outline"><ArrowLeft className="h-4 w-4 mr-2" />Voltar</Button>
+          </Link>
+        )}
       </Card>
     );
   }
@@ -163,11 +176,15 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
+    <div className="max-w-6xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
-        <Link to="/">
-          <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
-        </Link>
+        {onClose ? (
+          <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
+        ) : (
+          <Link to={backTo}>
+            <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
+          </Link>
+        )}
         <div className="flex items-center gap-2">
           {!isComplete && (
             <Button variant="outline" size="sm" onClick={() => setShowEditDialog(true)}>
@@ -180,6 +197,9 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         </div>
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
+      {/* Coluna esquerda: informações + progresso */}
+      <div className="space-y-4 lg:col-span-1">
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -188,7 +208,7 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="space-y-1">
               <span className="text-muted-foreground flex items-center gap-1"><Hash className="h-3 w-3" />Pedido</span>
               <p className="font-medium">{order.order_number}</p>
@@ -257,7 +277,10 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </div>
         </CardContent>
       </Card>
+      </div>
 
+      {/* Coluna direita: bipagem + códigos */}
+      <div className="space-y-4 lg:col-span-2">
       {!isComplete ? (
         <Card className="border-primary/30">
           <CardContent className="pt-6 space-y-4">
@@ -335,8 +358,6 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
         </Card>
       )}
 
-      <PhotoCapture orderId={orderId} locked={isComplete} />
-
       {order.scannedCodes.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
@@ -366,6 +387,11 @@ export function LoadingTracker({ orderId }: { orderId: string }) {
           </CardContent>
         </Card>
       )}
+      </div>
+      </div>
+
+      {/* Fotos em largura total */}
+      {!isMobile && <PhotoCapture orderId={orderId} locked={isComplete} />}
 
       <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
         <DialogContent>

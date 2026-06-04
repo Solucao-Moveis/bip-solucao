@@ -183,7 +183,17 @@ export function LoadingReport({ orderId }: { orderId: string }) {
             <div className="grid grid-cols-2 gap-4">
               {photos.map((p) => (
                 <div key={p.id} className="border rounded-lg overflow-hidden print:border-gray-400 break-inside-avoid">
-                  <img src={p.url} alt={p.caption || "Foto"} className="w-full h-48 object-cover" />
+                  <img
+                    src={p.thumbUrl}
+                    alt={p.caption || "Foto"}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.src !== p.url) img.src = p.url;
+                    }}
+                    className="w-full h-48 object-cover"
+                  />
                   <div className="p-2 text-sm text-gray-700 border-t print:border-gray-300">
                     {p.caption || <span className="text-gray-400 italic">Sem legenda</span>}
                   </div>
