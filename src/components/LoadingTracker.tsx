@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { flushSync } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { getOrder, addScannedCode, finishOrderEarly, removeScannedCode, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
-import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, Flag, MapPin, Pencil, Trash2 } from "lucide-react";
-import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeScanner";
+import { getOrder, addScannedCode, finishOrderEarly, removeScannedCode, updateOrderObservations, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
+import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, ImagePlus, Flag, MapPin, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { EditOrderDialog } from "@/components/EditOrderDialog";
-import { PhotoCapture } from "@/components/PhotoCapture";
+import { PhotoCapture, type PhotoCaptureHandle } from "@/components/PhotoCapture";
 import { homeHref } from "@/lib/view-mode";
 
 export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?: () => void }) {
@@ -20,13 +18,16 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
   const [loading, setLoading] = useState(true);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [showScanner, setShowScanner] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [finishReason, setFinishReason] = useState("");
   const [finishing, setFinishing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const scannerRef = useRef<BarcodeScannerHandle>(null);
+  const photoRef = useRef<PhotoCaptureHandle>(null);
+  // Observação editável direto na tela de bipagem (salva no carregamento).
+  const [obs, setObs] = useState("");
+  const [savingObs, setSavingObs] = useState(false);
+  const [obsSaved, setObsSaved] = useState(false);
   // "Voltar" leva pra origem (modo celular → /apontar, gestão → /).
   const [backTo, setBackTo] = useState<"/" | "/apontar">("/");
   useEffect(() => {
@@ -46,6 +47,12 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
   useEffect(() => {
     if (!loading) inputRef.current?.focus();
   }, [loading]);
+
+  // Sincroniza a observação só quando troca de pedido (não a cada recarga da bipagem).
+  useEffect(() => {
+    setObs(order?.observations ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.id]);
 
   const [selectedItemId, setSelectedItemId] = useState<string>("");
 
@@ -79,36 +86,11 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
     setTimeout(() => setFeedback(null), 3000);
   }, [orderId, loadOrder, selectedItemId, order]);
 
-  const requestCameraAndOpenScanner = useCallback(async () => {
-    if (showScanner) return;
-    flushSync(() => setShowScanner(true));
-    try {
-      await scannerRef.current?.start();
-      setFeedback(null);
-    } catch (err) {
-      console.error("Camera permission error:", err);
-      setShowScanner(false);
-      const errorName = err instanceof DOMException ? err.name : "";
-      const message =
-        errorName === "NotAllowedError"
-          ? "Permissão da câmera negada. Libere o acesso à câmera nas configurações do navegador."
-          : errorName === "NotFoundError"
-            ? "Nenhuma câmera foi encontrada neste aparelho."
-            : "Não foi possível abrir a câmera. Tente novamente pelo navegador do celular.";
-      setFeedback({ type: "error", message });
-      setTimeout(() => setFeedback(null), 4000);
-    }
-  }, [showScanner]);
-
-  const closeScanner = useCallback(() => {
-    void scannerRef.current?.stop().finally(() => setShowScanner(false));
-  }, []);
-
   const handleScan = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const code = barcodeInput.trim();
     if (!code) {
-      await requestCameraAndOpenScanner();
+      inputRef.current?.focus();
       return;
     }
     if (needsPackageSelector && !selectedItemId) {
@@ -119,12 +101,21 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
     await processScan(code);
     setBarcodeInput("");
     inputRef.current?.focus();
-  }, [barcodeInput, processScan, requestCameraAndOpenScanner, needsPackageSelector, selectedItemId]);
+  }, [barcodeInput, processScan, needsPackageSelector, selectedItemId]);
 
-  const handleCameraScan = useCallback(async (code: string) => {
-    setShowScanner(false);
-    await processScan(code);
-  }, [processScan]);
+  const handleSaveObs = useCallback(async () => {
+    setSavingObs(true);
+    const r = await updateOrderObservations(orderId, obs);
+    setSavingObs(false);
+    if (r.success) {
+      setObsSaved(true);
+      setTimeout(() => setObsSaved(false), 2000);
+      await loadOrder();
+    } else {
+      setFeedback({ type: "error", message: r.error || "Erro ao salvar observação" });
+      setTimeout(() => setFeedback(null), 3000);
+    }
+  }, [orderId, obs, loadOrder]);
 
   const handleFinishEarly = useCallback(async () => {
     if (!finishReason.trim()) return;
@@ -253,9 +244,31 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
               ))}
             </div>
           )}
-          {order.observations && (
-            <p className="mt-3 text-sm text-muted-foreground border-t pt-3">{order.observations}</p>
-          )}
+          <div className="mt-3 border-t pt-3 space-y-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
+              <FileText className="h-3 w-3" />Observação
+            </span>
+            {isComplete ? (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{order.observations || "—"}</p>
+            ) : (
+              <>
+                <Textarea
+                  rows={2}
+                  value={obs}
+                  onChange={(e) => setObs(e.target.value)}
+                  placeholder="Anote algo sobre este carregamento..."
+                />
+                <div className="flex items-center gap-2">
+                  {obs !== (order.observations ?? "") && (
+                    <Button size="sm" onClick={handleSaveObs} disabled={savingObs}>
+                      {savingObs ? "Salvando..." : "Salvar observação"}
+                    </Button>
+                  )}
+                  {obsSaved && <span className="text-xs text-success">Salvo ✓</span>}
+                </div>
+              </>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -281,9 +294,6 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
       {!isComplete ? (
         <Card className="border-primary/30">
           <CardContent className="pt-6 space-y-4">
-            {showScanner && (
-              <BarcodeScanner ref={scannerRef} onScan={handleCameraScan} onClose={closeScanner} />
-            )}
             <form onSubmit={handleScan} className="space-y-3">
               {needsPackageSelector && (
                 <div className="space-y-1">
@@ -318,12 +328,15 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
                   autoFocus
                 />
               </div>
+              <Button type="submit" className="w-full">
+                <ScanBarcode className="h-4 w-4 mr-2" />Registrar código
+              </Button>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={showScanner ? closeScanner : requestCameraAndOpenScanner}>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => photoRef.current?.openCamera()}>
                   <Camera className="h-4 w-4 mr-2" />Câmera
                 </Button>
-                <Button type="submit" className="flex-1">
-                  <ScanBarcode className="h-4 w-4 mr-2" />Registrar
+                <Button type="button" variant="outline" className="flex-1" onClick={() => photoRef.current?.openGallery()}>
+                  <ImagePlus className="h-4 w-4 mr-2" />Galeria
                 </Button>
               </div>
             </form>
@@ -387,8 +400,8 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
       </div>
       </div>
 
-      {/* Registro fotográfico (foto + legenda/observação) — também no celular da expedição */}
-      <PhotoCapture orderId={orderId} locked={isComplete} />
+      {/* Registro fotográfico — adicionado pelos botões Câmera/Galeria da bipagem (inclusive no celular). */}
+      <PhotoCapture ref={photoRef} orderId={orderId} locked={isComplete} hideButtons />
 
       <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
         <DialogContent>

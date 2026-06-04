@@ -298,6 +298,20 @@ export async function updateOrder(
   return { success: true };
 }
 
+// Atualização leve só da observação (usada na tela de bipagem, sem mexer nos itens).
+export async function updateOrderObservations(
+  orderId: string,
+  observations: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase
+    .from("loading_orders")
+    .update({ observations: observations.trim() || null })
+    .eq("id", orderId);
+  if (error) return { success: false, error: error.message };
+  await logAction({ action: "update", entity: "loading_order", entity_id: orderId, description: "Editou observação do carregamento" });
+  return { success: true };
+}
+
 export async function addScannedCode(
   orderId: string,
   code: string,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Camera, Trash2, ImagePlus } from "lucide-react";
 import { getOrderPhotos, uploadOrderPhoto, deleteOrderPhoto, type LoadingPhoto } from "@/lib/photos";
 
-export function PhotoCapture({ orderId, locked = false }: { orderId: string; locked?: boolean }) {
+export interface PhotoCaptureHandle {
+  openCamera: () => void;
+  openGallery: () => void;
+}
+
+export const PhotoCapture = forwardRef<
+  PhotoCaptureHandle,
+  { orderId: string; locked?: boolean; hideButtons?: boolean }
+>(function PhotoCapture({ orderId, locked = false, hideButtons = false }, ref) {
   const [photos, setPhotos] = useState<LoadingPhoto[]>([]);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string>("");
@@ -16,6 +24,12 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
   const [error, setError] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+
+  // Permite que a tela de bipagem dispare a câmera/galeria pelos botões de cima.
+  useImperativeHandle(ref, () => ({
+    openCamera: () => { if (!locked) cameraRef.current?.click(); },
+    openGallery: () => { if (!locked) fileRef.current?.click(); },
+  }), [locked]);
 
   const load = async () => setPhotos(await getOrderPhotos(orderId));
 
@@ -33,7 +47,6 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
 
   const onSave = async () => {
     if (!pendingFile) return;
-    if (!caption.trim()) { setError("Informe a legenda da foto."); return; }
     setBusy(true);
     const r = await uploadOrderPhoto(orderId, pendingFile, caption.trim());
     setBusy(false);
@@ -59,7 +72,7 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
           <Camera className="h-4 w-4 text-primary" />
           Registro Fotográfico ({photos.length})
         </CardTitle>
-        {!locked && (
+        {!locked && !hideButtons && (
           <div className="flex gap-2">
             <Button size="sm" onClick={() => cameraRef.current?.click()}>
               <Camera className="h-4 w-4 mr-1" />Tirar Foto
@@ -109,13 +122,13 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
       <Dialog open={!!pendingFile} onOpenChange={(o) => !o && onCancel()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Legenda da Foto</DialogTitle>
+            <DialogTitle>Anexar foto ao carregamento</DialogTitle>
           </DialogHeader>
           {pendingPreview && (
             <img src={pendingPreview} alt="Pré-visualização" className="w-full max-h-72 object-contain rounded-md border" />
           )}
           <Textarea
-            placeholder="Descreva o que aparece nesta foto..."
+            placeholder="Observação da foto (opcional)..."
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             rows={3}
@@ -123,10 +136,10 @@ export function PhotoCapture({ orderId, locked = false }: { orderId: string; loc
           {error && <p className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={onCancel} disabled={busy}>Cancelar</Button>
-            <Button onClick={onSave} disabled={busy || !caption.trim()}>{busy ? "Enviando..." : "Salvar Foto"}</Button>
+            <Button onClick={onSave} disabled={busy}>{busy ? "Enviando..." : "Salvar Foto"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
   );
-}
+});
