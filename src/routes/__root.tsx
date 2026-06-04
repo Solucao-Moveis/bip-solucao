@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 import appCss from "../styles.css?url";
+import faviconUrl from "@/assets/favicon.png?url";
 
 function NotFoundComponent() {
   return (
@@ -45,6 +46,7 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/79Jj5RyJyET4HtgtGJAMg0Tu5f92/social-images/social-1777664221911-images.webp" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: faviconUrl },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" },
