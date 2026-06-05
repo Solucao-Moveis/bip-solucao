@@ -183,7 +183,7 @@ export function OrderForm({ bare = false }: { bare?: boolean }) {
                       ))}
                     </select>
                   </div>
-                  <div className="col-span-6 md:col-span-3">
+                  <div className="col-span-12 md:col-span-3">
                     {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1"><Tag className="h-3 w-3" />Tipo Pacote</Label>}
                     <Input
                       placeholder="Pacote A"
@@ -191,7 +191,7 @@ export function OrderForm({ bare = false }: { bare?: boolean }) {
                       onChange={(e) => updateItem(index, "packageLabel", e.target.value)}
                     />
                   </div>
-                  <div className="col-span-3 md:col-span-2">
+                  <div className="col-span-5 md:col-span-2">
                     {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Pacotes</Label>}
                     <Input
                       type="number"
@@ -202,7 +202,7 @@ export function OrderForm({ bare = false }: { bare?: boolean }) {
                       onChange={(e) => updateItem(index, "quantity", e.target.value)}
                     />
                   </div>
-                  <div className="col-span-2 md:col-span-2">
+                  <div className="col-span-5 md:col-span-2">
                     {index === 0 && <Label className="text-xs text-muted-foreground mb-1 block">Und/Pct</Label>}
                     <Input
                       type="number"
@@ -212,7 +212,7 @@ export function OrderForm({ bare = false }: { bare?: boolean }) {
                       onChange={(e) => updateItem(index, "unitsPerPackage", e.target.value)}
                     />
                   </div>
-                  <div className="col-span-1 md:col-span-1 flex justify-end">
+                  <div className="col-span-2 md:col-span-1 flex justify-end">
                     <Button
                       type="button"
                       variant="ghost"
