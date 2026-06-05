@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "BIP — Expedição · SMERP",
+  "short_name": "BIP",
+  "description": "Apontamento e bipagem de carregamentos — Solução Móveis.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/apontar?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#1F9D55",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

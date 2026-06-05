@@ -32,6 +32,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#1F9D55" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "BIP" },
       { title: "Expedição - Solução Móveis" },
       { name: "description", content: "Cargo Tracker Pro manages truck loading by scanning product barcodes, tracking quantities, and preventing errors." },
       { name: "author", content: "Lovable" },
@@ -47,6 +52,8 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "icon", type: "image/png", href: faviconUrl },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" },
@@ -76,6 +83,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  // Registra o service worker do PWA (só no navegador; ignora no SSR).
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <AuthGate />

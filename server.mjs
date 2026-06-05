@@ -74,6 +74,11 @@ const server = Bun.serve({
       if (filePath) {
         const file = Bun.file(filePath);
         if (await file.exists()) {
+          // .webmanifest precisa do tipo correto, senão o Chrome ignora o PWA
+          // e não oferece "Instalar aplicativo".
+          if (filePath.endsWith('.webmanifest')) {
+            return new Response(file, { headers: { 'Content-Type': 'application/manifest+json' } });
+          }
           // Bun infers Content-Type from the file extension.
           return new Response(file);
         }
