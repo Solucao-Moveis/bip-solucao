@@ -16,6 +16,7 @@ import { Route as CargasRouteImport } from './routes/cargas'
 import { Route as ApontarRouteImport } from './routes/apontar'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CargasIndexRouteImport } from './routes/cargas.index'
 import { Route as ReportOrderIdRouteImport } from './routes/report.$orderId'
 import { Route as LoadingOrderIdRouteImport } from './routes/loading.$orderId'
 import { Route as CargasLoadingIdRouteImport } from './routes/cargas.$loadingId'
@@ -55,6 +56,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CargasIndexRoute = CargasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CargasRoute,
+} as any)
 const ReportOrderIdRoute = ReportOrderIdRouteImport.update({
   id: '/report/$orderId',
   path: '/report/$orderId',
@@ -82,18 +88,19 @@ export interface FileRoutesByFullPath {
   '/cargas/$loadingId': typeof CargasLoadingIdRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
+  '/cargas/': typeof CargasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apontar': typeof ApontarRoute
-  '/cargas': typeof CargasRouteWithChildren
   '/gerencial': typeof GerencialRoute
   '/gerencial-imprimir': typeof GerencialImprimirRoute
   '/login': typeof LoginRoute
   '/cargas/$loadingId': typeof CargasLoadingIdRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
+  '/cargas': typeof CargasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +114,7 @@ export interface FileRoutesById {
   '/cargas/$loadingId': typeof CargasLoadingIdRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
+  '/cargas/': typeof CargasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,18 +129,19 @@ export interface FileRouteTypes {
     | '/cargas/$loadingId'
     | '/loading/$orderId'
     | '/report/$orderId'
+    | '/cargas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/apontar'
-    | '/cargas'
     | '/gerencial'
     | '/gerencial-imprimir'
     | '/login'
     | '/cargas/$loadingId'
     | '/loading/$orderId'
     | '/report/$orderId'
+    | '/cargas'
   id:
     | '__root__'
     | '/'
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/cargas/$loadingId'
     | '/loading/$orderId'
     | '/report/$orderId'
+    | '/cargas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cargas/': {
+      id: '/cargas/'
+      path: '/'
+      fullPath: '/cargas/'
+      preLoaderRoute: typeof CargasIndexRouteImport
+      parentRoute: typeof CargasRoute
+    }
     '/report/$orderId': {
       id: '/report/$orderId'
       path: '/report/$orderId'
@@ -236,10 +253,12 @@ declare module '@tanstack/react-router' {
 
 interface CargasRouteChildren {
   CargasLoadingIdRoute: typeof CargasLoadingIdRoute
+  CargasIndexRoute: typeof CargasIndexRoute
 }
 
 const CargasRouteChildren: CargasRouteChildren = {
   CargasLoadingIdRoute: CargasLoadingIdRoute,
+  CargasIndexRoute: CargasIndexRoute,
 }
 
 const CargasRouteWithChildren =
