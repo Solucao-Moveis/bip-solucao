@@ -126,8 +126,8 @@ export function LoadingForm({ initial, onSaved }: { initial?: Loading; onSaved?:
           <Field label="Data início"><Input type="date" value={header.start_date} onChange={(e) => setH("start_date", e.target.value)} /></Field>
           <Field label="Data término"><Input type="date" value={header.end_date} onChange={(e) => setH("end_date", e.target.value)} /></Field>
           <div className="grid grid-cols-2 gap-2">
-            <Field label="Hora início"><Input value={header.start_time} onChange={(e) => setH("start_time", e.target.value)} placeholder="09:30" /></Field>
-            <Field label="Hora término"><Input value={header.end_time} onChange={(e) => setH("end_time", e.target.value)} placeholder="16:48" /></Field>
+            <Field label="Hora início"><Input type="time" value={header.start_time} onChange={(e) => setH("start_time", e.target.value)} /></Field>
+            <Field label="Hora término"><Input type="time" value={header.end_time} onChange={(e) => setH("end_time", e.target.value)} /></Field>
           </div>
           <Field label="Previsão de saída"><Input type="datetime-local" value={header.departure_forecast} onChange={(e) => setH("departure_forecast", e.target.value)} /></Field>
           <Field label="Carregamento (tipo)"><Input value={header.load_type} onChange={(e) => setH("load_type", e.target.value)} placeholder="ex.: CHAPAS" /></Field>
