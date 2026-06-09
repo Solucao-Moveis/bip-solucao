@@ -1,6 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ExpedicaoProvider } from "@/hooks/useExpedicao";
 
 import appCss from "../styles.css?url";
 import faviconUrl from "@/assets/favicon.png?url";
@@ -92,7 +93,9 @@ function RootComponent() {
 
   return (
     <AuthProvider>
-      <AuthGate />
+      <ExpedicaoProvider>
+        <AuthGate />
+      </ExpedicaoProvider>
     </AuthProvider>
   );
 }

@@ -53,6 +53,7 @@ export interface GerencialProductAgg {
 export interface GerencialOrderRow {
   id: string;
   order_number: string;
+  loading_number: string | null;
   loading_date: string;
   driver: string;
   vehicle_plate: string;
@@ -93,7 +94,7 @@ const EMPTY = (from: string, to: string): SeparationReport => ({
 export async function getSeparationReport(from: string, to: string): Promise<SeparationReport> {
   const { data: ordersData, error } = await supabase
     .from("loading_orders")
-    .select("id, order_number, loading_date, driver, vehicle_plate, city, status, quantity")
+    .select("id, order_number, loading_number, loading_date, driver, vehicle_plate, city, status, quantity")
     .gte("loading_date", from)
     .lte("loading_date", to)
     .order("loading_date")
@@ -184,6 +185,7 @@ export async function getSeparationReport(from: string, to: string): Promise<Sep
     return {
       id: o.id,
       order_number: o.order_number,
+      loading_number: o.loading_number ?? null,
       loading_date: o.loading_date,
       driver: o.driver,
       vehicle_plate: o.vehicle_plate,

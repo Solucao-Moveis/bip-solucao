@@ -6,7 +6,8 @@ import { setViewMode } from "@/lib/view-mode";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, Hash, Plus, X, ChevronRight, ScanBarcode, Home, Trash2 } from "lucide-react";
+import { Package, Hash, Plus, X, ChevronRight, ScanBarcode, Home, Trash2, ClipboardList } from "lucide-react";
+import { useExpedicao } from "@/hooks/useExpedicao";
 import logo from "@/assets/logo-solucao-moveis.png";
 
 // Hub central (botão "Voltar ao ERP")
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/apontar")({
 });
 
 function ApontarPage() {
+  const { isMember: isExpedicao } = useExpedicao();
   const [orders, setOrders] = useState<LoadingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -74,6 +76,12 @@ function ApontarPage() {
           <Button size="lg" className="w-full" onClick={() => setShowForm(true)}>
             <Plus className="h-5 w-5 mr-2" />Novo carregamento
           </Button>
+        )}
+
+        {isExpedicao && (
+          <Link to="/cargas">
+            <Button variant="outline" className="w-full"><ClipboardList className="h-4 w-4 mr-2" />Registro de Carregamento</Button>
+          </Link>
         )}
 
         {/* Carregamentos a bipar */}

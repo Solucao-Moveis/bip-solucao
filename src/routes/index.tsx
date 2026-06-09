@@ -202,6 +202,9 @@ function OrderCard({ order, onOpen, onCancel }: { order: LoadingOrder; onOpen: (
                 <Hash className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 {order.order_number}
               </p>
+              {order.loading_number && (
+                <p className="mt-0.5 text-xs font-medium text-primary">Carga {order.loading_number}</p>
+              )}
               <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{produtos}</p>
             </div>
             <Badge

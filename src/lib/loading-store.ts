@@ -32,6 +32,7 @@ export interface ScannedCode {
 export interface LoadingOrder {
   id: string;
   order_number: string;
+  loading_number: string | null;
   product_id: string;
   quantity: number;
   driver: string;
@@ -121,6 +122,7 @@ function mapOrder(o: any, codes: ScannedCode[], items: OrderItem[]): LoadingOrde
   return {
     id: o.id,
     order_number: o.order_number,
+    loading_number: o.loading_number ?? null,
     product_id: o.product_id,
     quantity: totalQuantity,
     driver: o.driver,
@@ -210,6 +212,7 @@ export interface OrderItemInputData {
 
 export async function createOrder(data: {
   orderNumber: string;
+  loadingNumber?: string;
   items: OrderItemInputData[];
   driver: string;
   city: string;
@@ -224,6 +227,7 @@ export async function createOrder(data: {
     .from("loading_orders")
     .insert({
       order_number: data.orderNumber,
+      loading_number: data.loadingNumber?.trim() || null,
       product_id: firstProductId,
       quantity: totalQuantity,
       driver: data.driver,
@@ -255,6 +259,7 @@ export async function updateOrder(
   orderId: string,
   data: {
     orderNumber: string;
+    loadingNumber?: string;
     items: OrderItemInputData[];
     driver: string;
     city: string;
@@ -270,6 +275,7 @@ export async function updateOrder(
     .from("loading_orders")
     .update({
       order_number: data.orderNumber,
+      loading_number: data.loadingNumber?.trim() || null,
       product_id: firstProductId,
       quantity: totalQuantity,
       driver: data.driver,

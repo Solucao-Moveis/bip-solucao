@@ -33,6 +33,7 @@ export function EditOrderDialog({
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     orderNumber: order.order_number,
+    loadingNumber: order.loading_number ?? "",
     driver: order.driver,
     city: order.city ?? "",
     vehiclePlate: order.vehiclePlate,
@@ -92,6 +93,7 @@ export function EditOrderDialog({
     setSaving(true);
     const result = await updateOrder(order.id, {
       orderNumber: form.orderNumber,
+      loadingNumber: form.loadingNumber,
       driver: form.driver,
       city: form.city,
       vehiclePlate: form.vehiclePlate,
@@ -120,6 +122,10 @@ export function EditOrderDialog({
             <div className="space-y-1">
               <Label>Número do Pedido</Label>
               <Input value={form.orderNumber} onChange={(e) => update("orderNumber", e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>Nº do Carregamento</Label>
+              <Input placeholder="opcional" value={form.loadingNumber} onChange={(e) => update("loadingNumber", e.target.value)} />
             </div>
             <div className="space-y-1">
               <Label>Motorista</Label>

@@ -51,6 +51,7 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
               <TableRow>
                 <TableHead>Data</TableHead>
                 <TableHead>Pedido</TableHead>
+                <TableHead>Carregamento</TableHead>
                 <TableHead>Motorista</TableHead>
                 <TableHead>Placa</TableHead>
                 <TableHead>Cidade</TableHead>
@@ -67,6 +68,7 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
                 <TableRow key={o.id}>
                   <TableCell className="whitespace-nowrap">{formatDateBR(o.loading_date)}</TableCell>
                   <TableCell className="font-medium">{o.order_number}</TableCell>
+                  <TableCell>{o.loading_number || "—"}</TableCell>
                   <TableCell>{o.driver}</TableCell>
                   <TableCell className="font-mono text-xs">{o.vehicle_plate}</TableCell>
                   <TableCell>{o.city || "—"}</TableCell>

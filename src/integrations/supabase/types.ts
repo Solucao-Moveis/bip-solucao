@@ -102,6 +102,7 @@ export type Database = {
           driver: string
           id: string
           loading_date: string
+          loading_number: string | null
           observations: string | null
           order_number: string
           product_id: string
@@ -115,6 +116,7 @@ export type Database = {
           driver: string
           id?: string
           loading_date: string
+          loading_number?: string | null
           observations?: string | null
           order_number: string
           product_id: string
@@ -128,6 +130,7 @@ export type Database = {
           driver?: string
           id?: string
           loading_date?: string
+          loading_number?: string | null
           observations?: string | null
           order_number?: string
           product_id?: string

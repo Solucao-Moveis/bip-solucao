@@ -28,6 +28,7 @@ export function OrderForm({ bare = false }: { bare?: boolean }) {
   ]);
   const [form, setForm] = useState({
     orderNumber: "",
+    loadingNumber: "",
     driver: "",
     city: "",
     vehiclePlate: "",
@@ -59,6 +60,7 @@ export function OrderForm({ bare = false }: { bare?: boolean }) {
     try {
       const order = await createOrder({
         orderNumber: form.orderNumber,
+        loadingNumber: form.loadingNumber,
         items: parsedItems,
         driver: form.driver,
         city: form.city,
@@ -119,6 +121,13 @@ export function OrderForm({ bare = false }: { bare?: boolean }) {
                 Número do Pedido
               </Label>
               <Input id="orderNumber" placeholder="Ex: PED-001" required value={form.orderNumber} onChange={(e) => update("orderNumber", e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="loadingNumber" className="flex items-center gap-2">
+                <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                Nº do Carregamento
+              </Label>
+              <Input id="loadingNumber" placeholder="Ex: 260426 (opcional)" value={form.loadingNumber} onChange={(e) => update("loadingNumber", e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="driver" className="flex items-center gap-2">

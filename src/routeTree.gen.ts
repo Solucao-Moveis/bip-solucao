@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GerencialImprimirRouteImport } from './routes/gerencial-imprimir'
 import { Route as GerencialRouteImport } from './routes/gerencial'
+import { Route as CargasRouteImport } from './routes/cargas'
 import { Route as ApontarRouteImport } from './routes/apontar'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReportOrderIdRouteImport } from './routes/report.$orderId'
 import { Route as LoadingOrderIdRouteImport } from './routes/loading.$orderId'
+import { Route as CargasLoadingIdRouteImport } from './routes/cargas.$loadingId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -31,6 +33,11 @@ const GerencialImprimirRoute = GerencialImprimirRouteImport.update({
 const GerencialRoute = GerencialRouteImport.update({
   id: '/gerencial',
   path: '/gerencial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CargasRoute = CargasRouteImport.update({
+  id: '/cargas',
+  path: '/cargas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApontarRoute = ApontarRouteImport.update({
@@ -58,14 +65,21 @@ const LoadingOrderIdRoute = LoadingOrderIdRouteImport.update({
   path: '/loading/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CargasLoadingIdRoute = CargasLoadingIdRouteImport.update({
+  id: '/$loadingId',
+  path: '/$loadingId',
+  getParentRoute: () => CargasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apontar': typeof ApontarRoute
+  '/cargas': typeof CargasRouteWithChildren
   '/gerencial': typeof GerencialRoute
   '/gerencial-imprimir': typeof GerencialImprimirRoute
   '/login': typeof LoginRoute
+  '/cargas/$loadingId': typeof CargasLoadingIdRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
 }
@@ -73,9 +87,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apontar': typeof ApontarRoute
+  '/cargas': typeof CargasRouteWithChildren
   '/gerencial': typeof GerencialRoute
   '/gerencial-imprimir': typeof GerencialImprimirRoute
   '/login': typeof LoginRoute
+  '/cargas/$loadingId': typeof CargasLoadingIdRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
 }
@@ -84,9 +100,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apontar': typeof ApontarRoute
+  '/cargas': typeof CargasRouteWithChildren
   '/gerencial': typeof GerencialRoute
   '/gerencial-imprimir': typeof GerencialImprimirRoute
   '/login': typeof LoginRoute
+  '/cargas/$loadingId': typeof CargasLoadingIdRoute
   '/loading/$orderId': typeof LoadingOrderIdRoute
   '/report/$orderId': typeof ReportOrderIdRoute
 }
@@ -96,9 +114,11 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apontar'
+    | '/cargas'
     | '/gerencial'
     | '/gerencial-imprimir'
     | '/login'
+    | '/cargas/$loadingId'
     | '/loading/$orderId'
     | '/report/$orderId'
   fileRoutesByTo: FileRoutesByTo
@@ -106,9 +126,11 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apontar'
+    | '/cargas'
     | '/gerencial'
     | '/gerencial-imprimir'
     | '/login'
+    | '/cargas/$loadingId'
     | '/loading/$orderId'
     | '/report/$orderId'
   id:
@@ -116,9 +138,11 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apontar'
+    | '/cargas'
     | '/gerencial'
     | '/gerencial-imprimir'
     | '/login'
+    | '/cargas/$loadingId'
     | '/loading/$orderId'
     | '/report/$orderId'
   fileRoutesById: FileRoutesById
@@ -127,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ApontarRoute: typeof ApontarRoute
+  CargasRoute: typeof CargasRouteWithChildren
   GerencialRoute: typeof GerencialRoute
   GerencialImprimirRoute: typeof GerencialImprimirRoute
   LoginRoute: typeof LoginRoute
@@ -155,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/gerencial'
       fullPath: '/gerencial'
       preLoaderRoute: typeof GerencialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cargas': {
+      id: '/cargas'
+      path: '/cargas'
+      fullPath: '/cargas'
+      preLoaderRoute: typeof CargasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apontar': {
@@ -192,13 +224,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoadingOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cargas/$loadingId': {
+      id: '/cargas/$loadingId'
+      path: '/$loadingId'
+      fullPath: '/cargas/$loadingId'
+      preLoaderRoute: typeof CargasLoadingIdRouteImport
+      parentRoute: typeof CargasRoute
+    }
   }
 }
+
+interface CargasRouteChildren {
+  CargasLoadingIdRoute: typeof CargasLoadingIdRoute
+}
+
+const CargasRouteChildren: CargasRouteChildren = {
+  CargasLoadingIdRoute: CargasLoadingIdRoute,
+}
+
+const CargasRouteWithChildren =
+  CargasRoute._addFileChildren(CargasRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ApontarRoute: ApontarRoute,
+  CargasRoute: CargasRouteWithChildren,
   GerencialRoute: GerencialRoute,
   GerencialImprimirRoute: GerencialImprimirRoute,
   LoginRoute: LoginRoute,
