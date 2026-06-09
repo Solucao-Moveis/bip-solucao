@@ -54,7 +54,7 @@ function ApontarPage() {
         <img src={logo} alt="Solução Móveis" className="h-8 w-8 rounded-md bg-white object-contain" />
         <div className="leading-tight">
           <p className="text-sm font-semibold">Apontamento</p>
-          <p className="text-[11px] text-muted-foreground">Expedição</p>
+          <p className="text-[11px] text-muted-foreground">Gestor de Expedição</p>
         </div>
         <a href={ERP_URL} className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
           <Home className="h-4 w-4" />ERP

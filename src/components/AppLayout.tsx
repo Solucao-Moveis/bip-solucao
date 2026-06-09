@@ -23,7 +23,7 @@ export function AppLayout({ children, pageTitle }: { children: ReactNode; pageTi
 
   return (
     <AppShell
-      brand={{ logo, title: "Expedição", subtitle: "Controle de Carregamento" }}
+      brand={{ logo, title: "Gestor de Expedição", subtitle: "Controle de Carregamento" }}
       navItems={nav}
       pathname={path}
       pageTitle={pageTitle}

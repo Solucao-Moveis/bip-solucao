@@ -37,7 +37,7 @@ export const Route = createRootRoute({
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "BIP" },
+      { name: "apple-mobile-web-app-title", content: "Gestor de Expedição" },
       { title: "Expedição - Solução Móveis" },
       { name: "description", content: "Cargo Tracker Pro manages truck loading by scanning product barcodes, tracking quantities, and preventing errors." },
       { name: "author", content: "Lovable" },
