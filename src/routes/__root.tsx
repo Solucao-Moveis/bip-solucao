@@ -6,6 +6,8 @@ import { ExpedicaoProvider } from "@/hooks/useExpedicao";
 import appCss from "../styles.css?url";
 import faviconUrl from "@/assets/favicon.png?url";
 
+const THEME_INIT = `(function(){try{var K='smerp-theme';var h=location.hash||'';var t=null;if(h.indexOf('smerp_theme=')>-1){t=new URLSearchParams(h.replace(/^#/,'')).get('smerp_theme');if(t==='dark'||t==='light')localStorage.setItem(K,t);}t=localStorage.getItem(K)||'light';if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -74,6 +76,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="pt-BR">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body>
         {children}
