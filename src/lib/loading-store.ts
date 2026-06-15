@@ -191,15 +191,14 @@ export async function getOrders(): Promise<LoadingOrder[]> {
 }
 
 export async function getOrder(id: string): Promise<LoadingOrder | undefined> {
-  const { data: o, error } = await supabase
-    .from("loading_orders")
-    .select("*, products(*)")
-    .eq("id", id)
-    .single();
-  if (error || !o) return undefined;
-  const codes = await fetchScannedCodes(o.id);
-  const items = await fetchOrderItems(o.id);
-  return mapOrder(o, codes, items);
+  // As 3 buscas (pedido, códigos, itens) são independentes — rodam em paralelo.
+  const [orderRes, codes, items] = await Promise.all([
+    supabase.from("loading_orders").select("*, products(*)").eq("id", id).single(),
+    fetchScannedCodes(id),
+    fetchOrderItems(id),
+  ]);
+  if (orderRes.error || !orderRes.data) return undefined;
+  return mapOrder(orderRes.data, codes, items);
 }
 
 export interface OrderItemInputData {
@@ -322,7 +321,7 @@ export async function addScannedCode(
   orderId: string,
   code: string,
   selectedItemId?: string | null
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; scan?: ScannedCode; status?: LoadingOrder["status"] }> {
   const order = await getOrder(orderId);
   if (!order) return { success: false, error: "Pedido não encontrado" };
   if (order.status === "completed") return { success: false, error: "Carregamento já finalizado" };
@@ -375,7 +374,7 @@ export async function addScannedCode(
     }
   }
 
-  const { error } = await supabase
+  const { data: inserted, error } = await supabase
     .from("scanned_codes")
     .insert({
       order_id: orderId,
@@ -383,20 +382,23 @@ export async function addScannedCode(
       product_id: matchedProduct?.id ?? targetItem?.product_id ?? null,
       package_label: targetItem?.package_label ?? null,
       item_id: targetItem?.id ?? null,
-    } as never);
-  if (error) {
-    if (error.code === "23505") return { success: false, error: "Código duplicado no banco" };
-    return { success: false, error: error.message };
+    } as never)
+    .select("id, barcode, product_id, scanned_at, package_label, item_id")
+    .single();
+  if (error || !inserted) {
+    if (error?.code === "23505") return { success: false, error: "Código duplicado no banco" };
+    return { success: false, error: error?.message ?? "Erro ao registrar código" };
   }
 
   const newCount = order.scannedCodes.length + 1;
-  const newStatus = newCount >= order.quantity ? "completed" : "in_progress";
+  const newStatus: LoadingOrder["status"] = newCount >= order.quantity ? "completed" : "in_progress";
   await supabase.from("loading_orders").update({ status: newStatus }).eq("id", orderId);
 
+  // Log de auditoria em segundo plano — não trava o retorno do bipe.
   const labelDesc = targetItem?.package_label ? ` [${targetItem.package_label}]` : "";
   const cityDesc = targetItem?.city ? ` {${targetItem.city}}` : "";
-  await logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}${labelDesc}${cityDesc}` });
-  return { success: true };
+  void logAction({ action: "scan_add", entity: "scanned_code", entity_id: orderId, description: `Bipou ${trimmed}${matchedProduct ? ` (${matchedProduct.name})` : ""}${labelDesc}${cityDesc}` });
+  return { success: true, scan: inserted as ScannedCode, status: newStatus };
 }
 
 export async function removeScannedCode(scanId: string): Promise<{ success: boolean; error?: string }> {

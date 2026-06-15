@@ -73,7 +73,13 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
   const processScan = useCallback(async (code: string) => {
     if (!code.trim()) return;
     const result = await addScannedCode(orderId, code.trim(), selectedItemId || null);
-    if (result.success) {
+    if (result.success && result.scan) {
+      const scan = result.scan;
+      const status = result.status;
+      // Atualização otimista: soma o código na tela na hora, sem reler o pedido inteiro.
+      setOrder((prev) =>
+        prev ? { ...prev, status: status ?? prev.status, scannedCodes: [...prev.scannedCodes, scan] } : prev
+      );
       setFeedback({ type: "success", message: `✓ Pacote ${code} registrado` });
       // Auto-clear selection if this item just got full
       if (selectedItemId && order) {
@@ -83,12 +89,11 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
           if (scannedNow >= item.quantity) setSelectedItemId("");
         }
       }
-      await loadOrder();
     } else {
       setFeedback({ type: "error", message: result.error || "Erro" });
     }
     setTimeout(() => setFeedback(null), 3000);
-  }, [orderId, loadOrder, selectedItemId, order]);
+  }, [orderId, selectedItemId, order]);
 
   const requestCameraAndOpenScanner = useCallback(async () => {
     if (showScanner) return;

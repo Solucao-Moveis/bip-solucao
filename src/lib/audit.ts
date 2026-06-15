@@ -6,7 +6,9 @@ export async function logAction(params: {
   entity_id?: string;
   description?: string;
 }) {
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession lê do cache local (sem ida à rede); getUser validava o token online a cada chamada.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return;
   await supabase.from("audit_log").insert({
     user_id: user.id,
