@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Camera, Trash2, ImagePlus } from "lucide-react";
-import { getOrderPhotos, uploadOrderPhoto, deleteOrderPhoto, type LoadingPhoto } from "@/lib/photos";
+import { Camera, Trash2, ImagePlus, Pencil } from "lucide-react";
+import { getOrderPhotos, uploadOrderPhoto, updateOrderPhoto, deleteOrderPhoto, type LoadingPhoto } from "@/lib/photos";
 
 export interface PhotoCaptureHandle {
   openCamera: () => void;
@@ -24,6 +24,14 @@ export const PhotoCapture = forwardRef<
   const [error, setError] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+
+  // Edição de uma foto já enviada (trocar imagem / mudar observação).
+  const [editing, setEditing] = useState<LoadingPhoto | null>(null);
+  const [editCaption, setEditCaption] = useState("");
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const [editPreview, setEditPreview] = useState<string>("");
+  const editFileRef = useRef<HTMLInputElement>(null);
+  const editCameraRef = useRef<HTMLInputElement>(null);
 
   // Permite que a tela de bipagem dispare a câmera/galeria pelos botões de cima.
   useImperativeHandle(ref, () => ({
@@ -65,6 +73,41 @@ export const PhotoCapture = forwardRef<
     await load();
   };
 
+  const openEdit = (p: LoadingPhoto) => {
+    setEditing(p);
+    setEditCaption(p.caption || "");
+    setEditFile(null);
+    setEditPreview("");
+    setError("");
+  };
+
+  const onPickEdit = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setEditFile(f);
+    setEditPreview(URL.createObjectURL(f));
+    setError("");
+    e.target.value = "";
+  };
+
+  const onCancelEdit = () => {
+    setEditing(null);
+    setEditFile(null);
+    setEditPreview("");
+    setEditCaption("");
+    setError("");
+  };
+
+  const onSaveEdit = async () => {
+    if (!editing) return;
+    setBusy(true);
+    const r = await updateOrderPhoto(editing, { caption: editCaption.trim(), file: editFile });
+    setBusy(false);
+    if (!r.success) { setError(r.error || "Erro ao salvar"); return; }
+    onCancelEdit();
+    await load();
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -93,23 +136,44 @@ export const PhotoCapture = forwardRef<
             {photos.map((p) => (
               <div key={p.id} className="space-y-1">
                 <div className="relative group">
-                  <a href={p.url} target="_blank" rel="noopener noreferrer">
-                    <img
-                      src={p.thumbUrl}
-                      alt={p.caption || "Foto"}
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        const img = e.currentTarget;
-                        if (img.src !== p.url) img.src = p.url;
-                      }}
-                      className="w-full h-32 object-cover rounded-md border"
-                    />
-                  </a>
+                  {locked ? (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={p.thumbUrl}
+                        alt={p.caption || "Foto"}
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          if (img.src !== p.url) img.src = p.url;
+                        }}
+                        className="w-full h-32 object-cover rounded-md border"
+                      />
+                    </a>
+                  ) : (
+                    <button type="button" onClick={() => openEdit(p)} className="block w-full">
+                      <img
+                        src={p.thumbUrl}
+                        alt={p.caption || "Foto"}
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          if (img.src !== p.url) img.src = p.url;
+                        }}
+                        className="w-full h-32 object-cover rounded-md border"
+                      />
+                    </button>
+                  )}
                   {!locked && (
-                    <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => onDelete(p)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    <>
+                      <Button size="icon" variant="secondary" className="absolute top-1 left-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => openEdit(p)}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => onDelete(p)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-2">{p.caption}</p>
@@ -137,6 +201,42 @@ export const PhotoCapture = forwardRef<
           <DialogFooter>
             <Button variant="outline" onClick={onCancel} disabled={busy}>Cancelar</Button>
             <Button onClick={onSave} disabled={busy}>{busy ? "Enviando..." : "Salvar Foto"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && onCancelEdit()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar foto</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <img
+              src={editPreview || editing.url}
+              alt="Foto"
+              className="w-full max-h-72 object-contain rounded-md border"
+            />
+          )}
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => editCameraRef.current?.click()}>
+              <Camera className="h-4 w-4 mr-1" />Tirar outra
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => editFileRef.current?.click()}>
+              <ImagePlus className="h-4 w-4 mr-1" />Trocar da galeria
+            </Button>
+          </div>
+          <Input ref={editCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onPickEdit} />
+          <Input ref={editFileRef} type="file" accept="image/*" className="hidden" onChange={onPickEdit} />
+          <Textarea
+            placeholder="Observação da foto (opcional)..."
+            value={editCaption}
+            onChange={(e) => setEditCaption(e.target.value)}
+            rows={3}
+          />
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={onCancelEdit} disabled={busy}>Cancelar</Button>
+            <Button onClick={onSaveEdit} disabled={busy}>{busy ? "Salvando..." : "Salvar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

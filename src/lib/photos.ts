@@ -79,6 +79,62 @@ export async function uploadOrderPhoto(
   return { success: true };
 }
 
+/**
+ * Edita uma foto já enviada: troca a observação (caption) e/ou substitui a imagem.
+ * Ao trocar a imagem, gravamos num caminho novo e apagamos o antigo — assim a URL
+ * muda e o navegador não mostra a foto velha em cache.
+ */
+export async function updateOrderPhoto(
+  photo: LoadingPhoto,
+  opts: { caption?: string; file?: File | null }
+): Promise<{ success: boolean; error?: string }> {
+  if (opts.file) {
+    const newPath = `${photo.order_id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const newThumb = thumbPathFor(newPath);
+
+    const [full, thumb] = await Promise.all([
+      compressImage(opts.file, FULL),
+      compressImage(opts.file, THUMB),
+    ]);
+
+    const { error: upErr } = await supabase.storage.from(BUCKET).upload(newPath, full, {
+      contentType: "image/jpeg",
+      upsert: false,
+    });
+    if (upErr) return { success: false, error: upErr.message };
+
+    await supabase.storage.from(BUCKET).upload(newThumb, thumb, {
+      contentType: "image/jpeg",
+      upsert: true,
+    });
+
+    const { error: updErr } = await supabase
+      .from("loading_photos" as never)
+      .update({ storage_path: newPath } as never)
+      .eq("id", photo.id);
+    if (updErr) return { success: false, error: updErr.message };
+
+    // Imagem antiga vira lixo: remove (melhor esforço).
+    await supabase.storage.from(BUCKET).remove([photo.storage_path, thumbPathFor(photo.storage_path)]);
+  }
+
+  if (opts.caption !== undefined) {
+    const { error } = await supabase
+      .from("loading_photos" as never)
+      .update({ caption: opts.caption || null } as never)
+      .eq("id", photo.id);
+    if (error) return { success: false, error: error.message };
+  }
+
+  await logAction({
+    action: "photo_edit",
+    entity: "loading_order",
+    entity_id: photo.order_id,
+    description: `Editou foto${opts.file ? " (trocou a imagem)" : ""}${opts.caption !== undefined ? `: ${opts.caption}` : ""}`,
+  });
+  return { success: true };
+}
+
 export async function deleteOrderPhoto(photo: LoadingPhoto): Promise<{ success: boolean; error?: string }> {
   await supabase.storage.from(BUCKET).remove([photo.storage_path, thumbPathFor(photo.storage_path)]);
   const { error } = await supabase.from("loading_photos" as never).delete().eq("id", photo.id);
