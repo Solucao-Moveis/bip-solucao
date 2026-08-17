@@ -434,6 +434,28 @@ export async function finishOrderEarly(orderId: string, reason: string): Promise
   return { success: true };
 }
 
+// Reabre um carregamento já finalizado pra ajuste livre (bipar/remover/editar).
+// Não mexe em loading_date — só o status volta pra in_progress.
+export async function reopenOrder(orderId: string, reason: string): Promise<{ success: boolean; error?: string }> {
+  const order = await getOrder(orderId);
+  if (!order) return { success: false, error: "Pedido não encontrado" };
+  if (order.status !== "completed") return { success: false, error: "Carregamento não está finalizado" };
+
+  const { error } = await supabase
+    .from("loading_orders")
+    .update({
+      status: "in_progress",
+      observations: order.observations
+        ? `${order.observations}\n\nReaberto para ajuste: ${reason}`
+        : `Reaberto para ajuste: ${reason}`,
+    })
+    .eq("id", orderId);
+  if (error) return { success: false, error: error.message };
+
+  await logAction({ action: "reopen", entity: "loading_order", entity_id: orderId, description: `Reabriu carregamento ${order.order_number}: ${reason}` });
+  return { success: true };
+}
+
 export async function cancelOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
   const order = await getOrder(orderId);
   if (!order) return { success: false, error: "Pedido não encontrado" };

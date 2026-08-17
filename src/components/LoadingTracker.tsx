@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { getOrder, addScannedCode, finishOrderEarly, removeScannedCode, updateOrderObservations, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
-import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, ImagePlus, Flag, MapPin, Pencil, Trash2 } from "lucide-react";
+import { getOrder, addScannedCode, finishOrderEarly, reopenOrder, removeScannedCode, updateOrderObservations, formatDateBR, formatDateTimeBR, type LoadingOrder } from "@/lib/loading-store";
+import { ScanBarcode, Package, CheckCircle2, XCircle, Truck, User, Calendar, AlertTriangle, ArrowLeft, Hash, FileText, Camera, ImagePlus, Flag, MapPin, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { BarcodeScanner, type BarcodeScannerHandle } from "@/components/BarcodeScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { EditOrderDialog } from "@/components/EditOrderDialog";
@@ -25,6 +25,9 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [finishReason, setFinishReason] = useState("");
   const [finishing, setFinishing] = useState(false);
+  const [showReopenDialog, setShowReopenDialog] = useState(false);
+  const [reopenReason, setReopenReason] = useState("");
+  const [reopening, setReopening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
   const photoRef = useRef<PhotoCaptureHandle>(null);
@@ -171,6 +174,21 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
     }
     setFinishing(false);
   }, [finishReason, orderId, loadOrder]);
+
+  const handleReopen = useCallback(async () => {
+    if (!reopenReason.trim()) return;
+    setReopening(true);
+    const result = await reopenOrder(orderId, reopenReason.trim());
+    if (result.success) {
+      setShowReopenDialog(false);
+      setReopenReason("");
+      await loadOrder();
+    } else {
+      setFeedback({ type: "error", message: result.error || "Erro ao reabrir" });
+      setTimeout(() => setFeedback(null), 3000);
+    }
+    setReopening(false);
+  }, [reopenReason, orderId, loadOrder]);
 
   if (loading) {
     return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
@@ -402,11 +420,16 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
             <p className="text-sm text-muted-foreground">
               Todos os {order.quantity} pacotes foram registrados com sucesso.
             </p>
-            <Link to="/report/$orderId" params={{ orderId }}>
-              <Button size="lg" className="mt-2">
-                <FileText className="h-4 w-4 mr-2" />Ver Relatório para Impressão
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+              <Link to="/report/$orderId" params={{ orderId }}>
+                <Button size="lg">
+                  <FileText className="h-4 w-4 mr-2" />Ver Relatório para Impressão
+                </Button>
+              </Link>
+              <Button size="lg" variant="outline" onClick={() => setShowReopenDialog(true)}>
+                <RotateCcw className="h-4 w-4 mr-2" />Reabrir para Ajuste
               </Button>
-            </Link>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -473,6 +496,32 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
       </Dialog>
 
       <EditOrderDialog order={order} open={showEditDialog} onOpenChange={setShowEditDialog} onSaved={loadOrder} />
+
+      <Dialog open={showReopenDialog} onOpenChange={setShowReopenDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reabrir Carregamento para Ajuste</DialogTitle>
+            <DialogDescription>
+              O carregamento volta para "Em andamento" pra bipar, remover códigos ou editar dados.
+              A data de saída não é alterada. Informe o motivo do ajuste.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Informe o motivo..."
+            value={reopenReason}
+            onChange={(e) => setReopenReason(e.target.value)}
+            rows={3}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowReopenDialog(false); setReopenReason(""); }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleReopen} disabled={!reopenReason.trim() || reopening}>
+              {reopening ? "Reabrindo..." : "Confirmar Reabertura"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
