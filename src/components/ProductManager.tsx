@@ -130,12 +130,12 @@ export function ProductManager({ bare = false }: { bare?: boolean }) {
                   </div>
                 ) : (
                   <div className="flex items-center gap-3 py-2 px-3 rounded-md bg-secondary/50">
-                    <Tag className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">{p.code}{p.description ? ` · ${p.description}` : ""}</p>
+                    <Tag className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-sm">{p.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{p.code}{p.description ? ` · ${p.description}` : ""}</p>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex shrink-0 items-center gap-1">
                       <Button size="sm" variant="ghost" onClick={() => startEdit(p)} title="Editar">
                         <Pencil className="h-4 w-4" />
                       </Button>

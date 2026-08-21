@@ -94,6 +94,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
           {order.items.length > 0 && (
             <div className="mt-3">
               <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Produtos do Carregamento</h3>
+              <div className="overflow-x-auto print:overflow-visible">
               <table className="w-full border-collapse border border-gray-300 text-sm">
                 <thead>
                   <tr className="bg-gray-100 print:bg-gray-100">
@@ -120,6 +121,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
                   ))}
                 </tbody>
               </table>
+              </div>
               {(() => {
                 const cities = Array.from(new Set(order.items.map((i) => i.city).filter((c): c is string => !!c)));
                 if (cities.length === 0) return null;
@@ -150,6 +152,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Móveis Bipados ({order.scannedCodes.length})
           </h2>
+          <div className="overflow-x-auto print:overflow-visible">
           <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-100 print:bg-gray-100">
@@ -172,6 +175,7 @@ export function LoadingReport({ orderId }: { orderId: string }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Photos */}

@@ -107,14 +107,16 @@ export function PasteImportDialog({
                 <div className="space-y-2">
                   {d.items.map((it, ii) => (
                     <div key={ii} className="grid grid-cols-12 gap-2 items-start border-t pt-2">
-                      <Input className="col-span-2 h-8 text-xs" value={it.code} placeholder="Código" onChange={(e) => update((p) => { p[di].items[ii].code = e.target.value; })} />
-                      <Textarea className="col-span-5 text-xs min-h-[2rem]" rows={1} value={it.description} placeholder="Descrição" onChange={(e) => update((p) => { p[di].items[ii].description = e.target.value; })} />
-                      <Input className="col-span-1 h-8 text-xs" value={it.qty_planned} placeholder="Qtd" onChange={(e) => update((p) => { p[di].items[ii].qty_planned = e.target.value; })} />
-                      <Input className="col-span-2 h-8 text-xs" value={it.order_number} placeholder="Pedido" onChange={(e) => update((p) => { p[di].items[ii].order_number = e.target.value; })} />
-                      <Input className="col-span-1 h-8 text-xs" value={it.invoice} placeholder="NF" onChange={(e) => update((p) => { p[di].items[ii].invoice = e.target.value; })} />
-                      <Button className="col-span-1 h-8" variant="ghost" size="icon" title="Remover item" onClick={() => update((p) => { p[di].items.splice(ii, 1); })}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="col-span-3 sm:col-span-2"><Input className="h-8 text-xs" value={it.code} placeholder="Código" onChange={(e) => update((p) => { p[di].items[ii].code = e.target.value; })} /></div>
+                      <div className="col-span-9 sm:col-span-5"><Textarea className="text-xs min-h-[2rem]" rows={1} value={it.description} placeholder="Descrição" onChange={(e) => update((p) => { p[di].items[ii].description = e.target.value; })} /></div>
+                      <div className="col-span-3 sm:col-span-1"><Input className="h-8 text-xs" value={it.qty_planned} placeholder="Qtd" onChange={(e) => update((p) => { p[di].items[ii].qty_planned = e.target.value; })} /></div>
+                      <div className="col-span-4 sm:col-span-2"><Input className="h-8 text-xs" value={it.order_number} placeholder="Pedido" onChange={(e) => update((p) => { p[di].items[ii].order_number = e.target.value; })} /></div>
+                      <div className="col-span-3 sm:col-span-1"><Input className="h-8 text-xs" value={it.invoice} placeholder="NF" onChange={(e) => update((p) => { p[di].items[ii].invoice = e.target.value; })} /></div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <Button className="h-8" variant="ghost" size="icon" title="Remover item" onClick={() => update((p) => { p[di].items.splice(ii, 1); })}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <Button variant="outline" size="sm" onClick={() => update((p) => { p[di].items.push({ code: "", description: "", qty_planned: "", order_number: "", invoice: "" }); })}>
