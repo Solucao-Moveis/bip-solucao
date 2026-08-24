@@ -223,7 +223,7 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         {onClose ? (
           <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
         ) : (
@@ -231,7 +231,7 @@ export function LoadingTracker({ orderId, onClose }: { orderId: string; onClose?
             <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" />Voltar</Button>
           </Link>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!isComplete && (
             <Button variant="outline" size="sm" onClick={() => setShowEditDialog(true)}>
               <Pencil className="h-3.5 w-3.5 mr-1" />Editar
