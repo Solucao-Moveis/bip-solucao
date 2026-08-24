@@ -15,10 +15,10 @@ export function AppLayout({ children, pageTitle }: { children: ReactNode; pageTi
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   const nav: NavItem[] = [
-    { to: "/", label: "Carregamentos", icon: Truck },
-    { to: "/gerencial", label: "Gerencial", icon: BarChart3 },
-    ...(isExpedicao ? [{ to: "/cargas", label: "Registro de Carregamento", icon: ClipboardList }] : []),
-    ...(isAdmin ? [{ to: "/admin", label: "Administração", icon: Shield }] : []),
+    { to: "/", label: "Carregamentos", icon: Truck, primary: true },
+    { to: "/gerencial", label: "Gerencial", icon: BarChart3, primary: true },
+    ...(isExpedicao ? [{ to: "/cargas", label: "Registro de Carregamento", icon: ClipboardList, primary: true }] : []),
+    ...(isAdmin ? [{ to: "/admin", label: "Administração", icon: Shield, primary: true }] : []),
   ];
 
   return (

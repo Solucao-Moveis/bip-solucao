@@ -181,6 +181,28 @@ function AdminPage() {
             <Card>
               <CardHeader><CardTitle>Usuários cadastrados</CardTitle></CardHeader>
               <CardContent>
+                {/* Celular: cartão por usuário */}
+                <div className="space-y-2 sm:hidden">
+                  {users.map((u) => (
+                    <div key={u.id} className="flex items-center justify-between gap-2 rounded-lg border p-2.5">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium">{u.full_name ?? "—"}</div>
+                        <div className="truncate text-xs text-muted-foreground">{u.email}</div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge variant={u.is_admin ? "default" : "secondary"}>{u.is_admin ? "Admin" : "Usuário"}</Badge>
+                        {u.id !== user?.id && (
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(u.id, u.email)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop/tablet: tabela */}
+                <div className="hidden sm:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -209,6 +231,7 @@ function AdminPage() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

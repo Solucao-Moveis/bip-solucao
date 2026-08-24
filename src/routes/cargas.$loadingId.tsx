@@ -183,47 +183,93 @@ function CargaPage() {
             <CardHeader className="py-3">
               <CardTitle className="flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 text-primary" />{[d.city, d.uf].filter(Boolean).join("/")}</CardTitle>
             </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-xs uppercase text-muted-foreground">
-                    <th className="px-1 py-2 text-left">Código</th>
-                    <th className="px-1 py-2 text-left">Descrição</th>
-                    <th className="px-1 py-2 text-center">Pedido</th>
-                    <th className="px-1 py-2 text-center">Solic.</th>
-                    <th className="px-1 py-2 text-center">Real</th>
-                    <th className="px-1 py-2 text-center">NF</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {d.items.map((it) => {
-                    const e = edits[it.id] ?? { qty: "", nf: "" };
-                    const diff = (num(e.qty) ?? 0) !== (it.qty_planned ?? 0);
-                    return (
-                      <tr key={it.id} className="border-b align-top">
-                        <td className="px-1 py-2 font-mono text-xs">{it.code}</td>
-                        <td className="px-1 py-2 whitespace-pre-line text-xs">{it.description}</td>
-                        <td className="px-1 py-2 text-center text-xs">{it.order_number}</td>
-                        <td className="px-1 py-2 text-center font-medium">{it.qty_planned}</td>
-                        <td className="px-1 py-2 text-center">
+            <CardContent>
+              {/* Celular: cartão por item */}
+              <div className="space-y-2 sm:hidden">
+                {d.items.map((it) => {
+                  const e = edits[it.id] ?? { qty: "", nf: "" };
+                  const diff = (num(e.qty) ?? 0) !== (it.qty_planned ?? 0);
+                  return (
+                    <div key={it.id} className="rounded-lg border p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-mono text-xs text-muted-foreground">{it.code}</div>
+                          <div className="whitespace-pre-line text-sm">{it.description}</div>
+                        </div>
+                        <div className="shrink-0 text-xs text-muted-foreground">Pedido {it.order_number}</div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-3 gap-2 items-end">
+                        <div>
+                          <div className="text-[11px] text-muted-foreground">Solic.</div>
+                          <div className="font-medium">{it.qty_planned}</div>
+                        </div>
+                        <div>
+                          <div className="text-[11px] text-muted-foreground">Real</div>
                           {editable ? (
-                            <Input className={`mx-auto h-8 w-16 text-center text-xs ${diff ? "border-amber-400" : ""}`} value={e.qty}
+                            <Input className={`h-8 w-full text-center text-xs ${diff ? "border-amber-400" : ""}`} value={e.qty}
                               onChange={(ev) => setEdits((p) => ({ ...p, [it.id]: { ...e, qty: ev.target.value } }))} />
                           ) : (
                             <span className={diff ? "font-semibold text-amber-700" : ""}>{it.qty_actual ?? "—"}</span>
                           )}
-                        </td>
-                        <td className="px-1 py-2 text-center">
+                        </div>
+                        <div>
+                          <div className="text-[11px] text-muted-foreground">NF</div>
                           {editable ? (
-                            <Input className="mx-auto h-8 w-20 text-center text-xs" value={e.nf}
+                            <Input className="h-8 w-full text-center text-xs" value={e.nf}
                               onChange={(ev) => setEdits((p) => ({ ...p, [it.id]: { ...e, nf: ev.target.value } }))} />
-                          ) : (it.invoice || "—")}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          ) : (
+                            <span>{it.invoice || "—"}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Tablet/desktop: tabela */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full whitespace-nowrap text-sm">
+                  <thead>
+                    <tr className="border-b text-xs uppercase text-muted-foreground">
+                      <th className="px-1 py-2 text-left">Código</th>
+                      <th className="px-1 py-2 text-left">Descrição</th>
+                      <th className="px-1 py-2 text-center">Pedido</th>
+                      <th className="px-1 py-2 text-center">Solic.</th>
+                      <th className="px-1 py-2 text-center">Real</th>
+                      <th className="px-1 py-2 text-center">NF</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {d.items.map((it) => {
+                      const e = edits[it.id] ?? { qty: "", nf: "" };
+                      const diff = (num(e.qty) ?? 0) !== (it.qty_planned ?? 0);
+                      return (
+                        <tr key={it.id} className="border-b align-top">
+                          <td className="px-1 py-2 font-mono text-xs">{it.code}</td>
+                          <td className="px-1 py-2 whitespace-pre-line text-xs">{it.description}</td>
+                          <td className="px-1 py-2 text-center text-xs">{it.order_number}</td>
+                          <td className="px-1 py-2 text-center font-medium">{it.qty_planned}</td>
+                          <td className="px-1 py-2 text-center">
+                            {editable ? (
+                              <Input className={`mx-auto h-8 w-16 text-center text-xs ${diff ? "border-amber-400" : ""}`} value={e.qty}
+                                onChange={(ev) => setEdits((p) => ({ ...p, [it.id]: { ...e, qty: ev.target.value } }))} />
+                            ) : (
+                              <span className={diff ? "font-semibold text-amber-700" : ""}>{it.qty_actual ?? "—"}</span>
+                            )}
+                          </td>
+                          <td className="px-1 py-2 text-center">
+                            {editable ? (
+                              <Input className="mx-auto h-8 w-20 text-center text-xs" value={e.nf}
+                                onChange={(ev) => setEdits((p) => ({ ...p, [it.id]: { ...e, nf: ev.target.value } }))} />
+                            ) : (it.invoice || "—")}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         ))}

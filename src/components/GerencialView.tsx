@@ -45,7 +45,33 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
             <Truck className="h-4 w-4 text-primary" />Carregamentos do período
           </CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent>
+          {/* Celular: cartão por carregamento */}
+          <div className="space-y-2 lg:hidden">
+            {report.orders.map((o) => (
+              <div key={o.id} className="rounded-lg border p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-medium">{o.order_number}{o.loading_number ? ` · ${o.loading_number}` : ""}</div>
+                    <div className="text-xs text-muted-foreground">{formatDateBR(o.loading_date)} · {o.driver}{o.vehicle_plate ? ` · ${o.vehicle_plate}` : ""}</div>
+                  </div>
+                  <StatusBadge status={o.status} />
+                </div>
+                <div className="mt-1 truncate text-xs text-muted-foreground" title={o.products}>
+                  {o.city ? `${o.city} · ` : ""}{o.products}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <span className="tabular-nums">Bipados: <b>{o.scanned}/{o.quantity}</b></span>
+                  <span className="text-muted-foreground">Início {fmtDateTime(o.start)}</span>
+                  <span className="text-muted-foreground">Fim {fmtDateTime(o.end)}</span>
+                  <span className="text-muted-foreground">Duração {fmtDuration(o.start, o.end)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: tabela */}
+          <div className="hidden overflow-x-auto lg:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -82,6 +108,7 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -93,7 +120,31 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
               <Boxes className="h-4 w-4 text-primary" />Produtos separados no período
             </CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
+          <CardContent>
+            {/* Celular: cartão por produto */}
+            <div className="space-y-2 sm:hidden">
+              {report.products.map((p) => (
+                <div key={p.key} className="flex items-center justify-between gap-2 rounded-lg border p-2.5">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm">{p.name}</div>
+                    <div className="font-mono text-xs text-muted-foreground">{p.code} · {p.orders} carreg.</div>
+                  </div>
+                  <div className="shrink-0 text-right text-sm tabular-nums">
+                    <div className="font-medium">{p.pacotes} pct</div>
+                    <div className="text-xs text-muted-foreground">{p.unidades} un.</div>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center justify-between rounded-lg bg-muted/50 p-2.5 text-sm font-semibold">
+                <span>Total</span>
+                <span className="tabular-nums">
+                  {report.products.reduce((s, p) => s + p.pacotes, 0)} pct · {report.products.reduce((s, p) => s + p.unidades, 0)} un.
+                </span>
+              </div>
+            </div>
+
+            {/* Desktop/tablet: tabela */}
+            <div className="hidden overflow-x-auto sm:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -121,6 +172,7 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
                 </TableRow>
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
 
@@ -131,32 +183,52 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
             </CardTitle>
             <CardDescription>Bipes a partir do log de auditoria</CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
+          <CardContent>
             {report.operators.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">Sem registros de operador no período.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Operador</TableHead>
-                    <TableHead className="text-right">Bipes</TableHead>
-                    <TableHead>Início</TableHead>
-                    <TableHead>Fim</TableHead>
-                    <TableHead>Duração</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Celular: cartão por operador */}
+                <div className="space-y-2 sm:hidden">
                   {report.operators.map((op) => (
-                    <TableRow key={op.email}>
-                      <TableCell className="max-w-[200px] truncate" title={op.email}>{op.email}</TableCell>
-                      <TableCell className="text-right tabular-nums font-medium">{op.scans}</TableCell>
-                      <TableCell className="whitespace-nowrap">{fmtDateTime(op.start)}</TableCell>
-                      <TableCell className="whitespace-nowrap">{fmtDateTime(op.end)}</TableCell>
-                      <TableCell className="whitespace-nowrap">{fmtDuration(op.start, op.end)}</TableCell>
-                    </TableRow>
+                    <div key={op.email} className="rounded-lg border p-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 flex-1 truncate text-sm" title={op.email}>{op.email}</span>
+                        <span className="shrink-0 text-sm font-medium tabular-nums">{op.scans} bipes</span>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {fmtDateTime(op.start)} – {fmtDateTime(op.end)} · {fmtDuration(op.start, op.end)}
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+
+                {/* Desktop/tablet: tabela */}
+                <div className="hidden overflow-x-auto sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Operador</TableHead>
+                      <TableHead className="text-right">Bipes</TableHead>
+                      <TableHead>Início</TableHead>
+                      <TableHead>Fim</TableHead>
+                      <TableHead>Duração</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {report.operators.map((op) => (
+                      <TableRow key={op.email}>
+                        <TableCell className="max-w-[200px] truncate" title={op.email}>{op.email}</TableCell>
+                        <TableCell className="text-right tabular-nums font-medium">{op.scans}</TableCell>
+                        <TableCell className="whitespace-nowrap">{fmtDateTime(op.start)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{fmtDateTime(op.end)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{fmtDuration(op.start, op.end)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -183,6 +255,24 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
                   {o.items.length === 0 ? (
                     <p className="text-xs italic text-muted-foreground">Sem itens cadastrados.</p>
                   ) : (
+                    <>
+                    {/* Celular: cartão por item */}
+                    <div className="space-y-1.5 sm:hidden">
+                      {o.items.map((it, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-2 rounded border p-2 text-xs">
+                          <div className="min-w-0">
+                            <span className="font-semibold">{it.package_label || "—"}</span>
+                            <span className="ml-1">{it.productName}</span>
+                            <div className="font-mono text-muted-foreground">{it.productCode} · {it.city || o.city || "—"}</div>
+                          </div>
+                          <div className="shrink-0 text-right tabular-nums">
+                            <div>{it.pacotes} pct × {it.unitsPerPackage ?? "—"}</div>
+                            <div className="font-medium">{it.unidades} un.</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="hidden sm:block">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -210,6 +300,8 @@ export function GerencialView({ report, showItems }: { report: SeparationReport;
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
+                    </>
                   )}
                 </div>
               ))}
